@@ -397,3 +397,28 @@ void FloatImage::Resize(unsigned int width, unsigned int height)
 	this->height = height;
 	pixels = new_pixels;
 }
+
+//LAB 1: Draw lines
+void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c){
+
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+
+	//number of steps, largest leg of the triangle
+	int d = std::max(abs(dx), abs(dy))
+
+	if (d == 0) {
+        SetPixel(x0, y0, c);
+        return;
+    }
+
+	float x_increment = dx / (float)d;
+    float y_increment = dy / (float)d;
+
+    for (int i = 0; i <= steps; i++) {
+        SetPixel( (int)round(x), (int)round(y), c);
+        x += x_increment;
+        y += y_increment;
+    }
+}
+

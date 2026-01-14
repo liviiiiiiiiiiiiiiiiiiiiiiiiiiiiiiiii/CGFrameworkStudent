@@ -123,4 +123,9 @@ public:
 	inline void SetPixelUnsafe(unsigned int x, unsigned int y, const float& v) { pixels[y * width + x] = v; }
 
 	void Resize(unsigned int width, unsigned int height);
+
+	//LAB 1: Drawing lines
+	void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
+
+
 };
