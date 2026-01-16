@@ -112,6 +112,61 @@ void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,int bo
         DrawLineDDA(x + w - 1 - i, y + i, x + w - 1 - i, y + h - 1 - i, borderColor); //Right
     }
 }
+void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table) {
+    //get differences
+	int dx = x1-x0;
+    int dy = y1-y0;
+    int d = std::max(std::abs(dx), std::abs(dy)); //number of steps
+    if (d == 0) return;
+
+	//get the vectr that gives us the direction of paiting
+    float vx = (float)dx / d; 
+    float vy = (float)dy / d;
+
+    float x = (float)x0;
+    float y = (float)y0;
+
+    for (int i = 0; i <= d; i++) {
+        int iX = (int)floor(x); 
+        int iY = (int)floor(y);
+
+        //find table[Y] and update min/max
+        if (iY >= 0 && iY < (int)table.size()) {
+            if (iX < table[iY].minx) table[iY].minx = iX;
+            if (iX > table[iY].maxx) table[iY].maxx = iX;
+        }
+
+        x += vx;
+        y += vy;
+    }
+}
+
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
+	
+	if (isFilled) {
+		//create table followinf the widnow size
+        std::vector<Cell> table;
+        table.resize(height); // table size = height [cite: 218]
+		
+        //get the three verttices using the auxiliar function 
+        ScanLineDDA((int)p0.x, (int)p0.y, (int)p1.x, (int)p1.y, table);
+        ScanLineDDA((int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y, table);
+        ScanLineDDA((int)p2.x, (int)p2.y, (int)p0.x, (int)p0.y, table);
+		
+        // going cell by cell paiting if minx <= maxx
+        for (int y = 0; y < height; y++) {
+			if (table[y].minx <= table[y].maxx) {
+				//painting the section if we have to
+                for (int x = table[y].minx; x <= table[y].maxx; x++) {
+					SetPixel(x, y, fillColor);
+                }
+            }
+        }
+    }
+	DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+	DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
+	DrawLineDDA(p2.x, p2.y, p0.x, p0.y, borderColor);
+}
 
 // Change image size (the old one will remain in the top-left corner)
 void Image::Resize(unsigned int width, unsigned int height)
