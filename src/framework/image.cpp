@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "camera.h"
 #include "mesh.h"
+#include <time.h>
 
 Image::Image() {
 	width = 0; height = 0;
@@ -69,26 +70,31 @@ void Image::Render()
 //LAB 1: Draw lines
 void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
 {
+	/*First we need to find the horizontal and vertical
+	difference of both extremes of the line*/
     float dx = (float)(x1-x0);
     float dy = (float)(y1-y0);
     
-    // El número de pasos es la distancia máxima en cualquier eje
+    /*"d" will be the maximum number of steps that we must
+	complete either vertically or horizontally*/
     int d = std::max(std::abs(x1-x0), std::abs(y1-y0));
 
-    // Cuánto avanzar en cada eje por cada paso
+    /*we divide both distances by the steps our drawer will
+	have to do and we get the value we must increment in
+	each iteration of the loop*/
     float xIncrement = dx/d;
     float yIncrement = dy/d;
 
-    // Posiciones iniciales
+    // Initial positions
     float x = (float)x0;
     float y = (float)y0;
 
     for (int i = 0; i <=d; i++)
     {
-        // Pintamos redondeando la posición actual
+        // we paint the pixel with the actual position rounded
         SetPixel((int)x, (int)y, c);
 
-        // Acumulamos el incremento con precisión de float
+        //we go to the next pixel to paint
         x += xIncrement;
         y += yIncrement;
     }
@@ -96,36 +102,44 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
 
 void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,int borderWidth, bool isFilled, const Color& fillColor)
 {
+	/*First we start by the logic for filling the rectangle*/
 	if (isFilled == true)
 	{
+		/*Notice how we paint vertically as we are going for each horizontal position
+		and then we paint all the y's in that x coordinate*/
 		for (int i = 0; i < w; i++) {
             for (int j = 0; j < h; j++) {
                 SetPixel(x + i, y + j, fillColor);
             }
         }
 	}
+	/*Now we paint the borders*/
 	for (int i = 0; i < borderWidth;i++) 
     {
-        DrawLineDDA(x + i, y + i, x + w - 1 - i, y + i, borderColor);  // Top
+		/*In the first iteration we will do the original rectangle,
+		but in each iteration that occurs the diagonal of the rectangle decreases
+		as we are shrinking tghe rectangle from both extremes*.
+		We think of it as drawing the exterior layer, and the the inside ones*/
+        DrawLineDDA(x + i, y + i, x + w - 1 - i, y + i, borderColor);  // this is the top line
         DrawLineDDA(x + i, y + i, x + i, y + h - 1 - i, borderColor);// Left
         DrawLineDDA(x + i, y + h - 1 - i, x + w - 1 - i, y + h - 1 - i, borderColor); //Bottom
         DrawLineDDA(x + w - 1 - i, y + i, x + w - 1 - i, y + h - 1 - i, borderColor); //Right
     }
 }
 void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table) {
-    //get differences
+    //Get the vector that gives us the direction of painting
 	int dx = x1-x0;
     int dy = y1-y0;
-    int d = std::max(std::abs(dx), std::abs(dy)); //number of steps
+    int d = std::max(std::abs(dx), std::abs(dy)); 
     if (d == 0) return;
 
-	//get the vectr that gives us the direction of paiting
+	//get the vector that gives us the direction of painting
     float vx = (float)dx / d; 
     float vy = (float)dy / d;
-
+	//initial position
     float x = (float)x0;
     float y = (float)y0;
-
+	/*Now we go to the direction that the vector tells us until we get to the final position we update the table*/
     for (int i = 0; i <= d; i++) {
         int iX = (int)floor(x); 
         int iY = (int)floor(y);
@@ -144,9 +158,9 @@ void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table
 void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
 	
 	if (isFilled) {
-		//create table followinf the widnow size
+		//create table following the widnow size
         std::vector<Cell> table;
-        table.resize(height); // table size = height [cite: 218]
+        table.resize(height); // table size = height
 		
         //get the three verttices using the auxiliar function 
         ScanLineDDA((int)p0.x, (int)p0.y, (int)p1.x, (int)p1.y, table);
@@ -159,6 +173,7 @@ void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2
 				//painting the section if we have to
                 for (int x = table[y].minx; x <= table[y].maxx; x++) {
 					SetPixel(x, y, fillColor);
+
                 }
             }
         }
