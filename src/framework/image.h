@@ -58,11 +58,18 @@ public:
 		return pixels[ y * width + x ]; 
 	}
 
-	//LAB 1: Drawing lines
-  	void DrawLineDDA(int x0, int y0, int x1, int y1, const Color &c);
+	// Primitives. Tasks 2.1
+	void DrawLineDDA(int x0, int y0, int x1, int y1, const Color &c);
+	void DrawRect(int x, int y, int w, int h, const Color &borderColor,
+					int borderWidth, bool isFilled, const Color &fillColor);
+		
+	struct Cell {
+			int minx = INT_MAX; // Inicializado a infinito positivo [cite: 161, 215]
+			int maxx = INT_MIN; // Inicializado a infinito negativo [cite: 161, 216]
+		};
 
-
-
+	void DrawTriangle(const Vector2 &p0, const Vector2 &p1, const Vector2 &p2, const Color &borderColor, bool isFilled, const Color &fillColor);
+	void ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table);// Used to easy code
 	// Set the pixel at position x,y with value C
 	void SetPixel(unsigned int x, unsigned int y, const Color& c) { if(x < 0 || x > width-1) return; if(y < 0 || y > height-1) return; pixels[ y * width + x ] = c; }
 	inline void SetPixelUnsafe(unsigned int x, unsigned int y, const Color& c) { pixels[ y * width + x ] = c; }

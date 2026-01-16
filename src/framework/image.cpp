@@ -94,6 +94,24 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
     }
 }
 
+void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,int borderWidth, bool isFilled, const Color& fillColor)
+{
+	if (isFilled == true)
+	{
+		for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                SetPixel(x + i, y + j, fillColor);
+            }
+        }
+	}
+	for (int i = 0; i < borderWidth;i++) 
+    {
+        DrawLineDDA(x + i, y + i, x + w - 1 - i, y + i, borderColor);  // Top
+        DrawLineDDA(x + i, y + i, x + i, y + h - 1 - i, borderColor);// Left
+        DrawLineDDA(x + i, y + h - 1 - i, x + w - 1 - i, y + h - 1 - i, borderColor); //Bottom
+        DrawLineDDA(x + w - 1 - i, y + i, x + w - 1 - i, y + h - 1 - i, borderColor); //Right
+    }
+}
 
 // Change image size (the old one will remain in the top-left corner)
 void Image::Resize(unsigned int width, unsigned int height)

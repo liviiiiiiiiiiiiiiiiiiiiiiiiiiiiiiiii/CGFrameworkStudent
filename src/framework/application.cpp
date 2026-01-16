@@ -32,6 +32,18 @@ void Application::Init(void)
 void Application::Render(void)
 {
 	// ...
+	framebuffer.SetPixel(0, 0, Color::GREEN);
+		// Definimos los tres puntos del triángulo
+	Vector2 p0(400, 150); // Arriba al centro
+	Vector2 p1(150, 450); // Abajo a la izquierda
+	Vector2 p2(650, 400); // Abajo a la derecha (un poco más arriba que p1)
+
+	// Definimos los colores
+	Color border = Color::WHITE;
+	Color fill = Color::BLUE;
+
+	// Llamada a tu función
+	framebuffer.DrawTriangle(p0, p1, p2, border, true, fill);
 
 	framebuffer.Render();
 }
