@@ -58,6 +58,11 @@ public:
 		return pixels[ y * width + x ]; 
 	}
 
+	//LAB 1: Drawing lines
+  	void DrawLineDDA(int x0, int y0, int x1, int y1, const Color &c);
+
+
+
 	// Set the pixel at position x,y with value C
 	void SetPixel(unsigned int x, unsigned int y, const Color& c) { if(x < 0 || x > width-1) return; if(y < 0 || y > height-1) return; pixels[ y * width + x ] = c; }
 	inline void SetPixelUnsafe(unsigned int x, unsigned int y, const Color& c) { pixels[ y * width + x ] = c; }
@@ -123,9 +128,4 @@ public:
 	inline void SetPixelUnsafe(unsigned int x, unsigned int y, const float& v) { pixels[y * width + x] = v; }
 
 	void Resize(unsigned int width, unsigned int height);
-
-	//LAB 1: Drawing lines
-	void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
-
-
 };

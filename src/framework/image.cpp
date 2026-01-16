@@ -66,6 +66,35 @@ void Image::Render()
 	glDrawPixels(width, height, bytes_per_pixel == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 }
 
+//LAB 1: Draw lines
+void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c)
+{
+    float dx = (float)(x1-x0);
+    float dy = (float)(y1-y0);
+    
+    // El número de pasos es la distancia máxima en cualquier eje
+    int d = std::max(std::abs(x1-x0), std::abs(y1-y0));
+
+    // Cuánto avanzar en cada eje por cada paso
+    float xIncrement = dx/d;
+    float yIncrement = dy/d;
+
+    // Posiciones iniciales
+    float x = (float)x0;
+    float y = (float)y0;
+
+    for (int i = 0; i <=d; i++)
+    {
+        // Pintamos redondeando la posición actual
+        SetPixel((int)x, (int)y, c);
+
+        // Acumulamos el incremento con precisión de float
+        x += xIncrement;
+        y += yIncrement;
+    }
+}
+
+
 // Change image size (the old one will remain in the top-left corner)
 void Image::Resize(unsigned int width, unsigned int height)
 {
@@ -398,27 +427,4 @@ void FloatImage::Resize(unsigned int width, unsigned int height)
 	pixels = new_pixels;
 }
 
-//LAB 1: Draw lines
-void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c){
-
-	int dx = x1 - x0;
-	int dy = y1 - y0;
-
-	//number of steps, largest leg of the triangle
-	int d = std::max(abs(dx), abs(dy))
-
-	if (d == 0) {
-        SetPixel(x0, y0, c);
-        return;
-    }
-
-	float x_increment = dx / (float)d;
-    float y_increment = dy / (float)d;
-
-    for (int i = 0; i <= steps; i++) {
-        SetPixel( (int)round(x), (int)round(y), c);
-        x += x_increment;
-        y += y_increment;
-    }
-}
 
