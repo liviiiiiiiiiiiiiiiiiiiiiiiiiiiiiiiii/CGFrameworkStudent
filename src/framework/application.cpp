@@ -45,7 +45,10 @@ void Application::Render(void) {
   if (testImg.width > 0)
     framebuffer.DrawImage(testImg, 50, 50);
 
+
   framebuffer.Render();
+
+
 }
 
 // Called after render

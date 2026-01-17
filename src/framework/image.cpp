@@ -94,8 +94,7 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color &c) {
   }
 }
 
-void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor,
-                     int borderWidth, bool isFilled, const Color &fillColor) {
+void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor, int borderWidth, bool isFilled, const Color &fillColor) {
   /*First we start by the logic for filling the rectangle*/
   if (isFilled == true) {
     /*Notice how we paint vertically as we are going for each horizontal
@@ -121,8 +120,8 @@ void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor,
                 borderColor); // Right
   }
 }
-void Image::ScanLineDDA(int x0, int y0, int x1, int y1,
-                        std::vector<Cell> &table) {
+
+void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell> &table) {
   // Get the vector that gives us the direction of painting
   int dx = x1 - x0;
   int dy = y1 - y0;
