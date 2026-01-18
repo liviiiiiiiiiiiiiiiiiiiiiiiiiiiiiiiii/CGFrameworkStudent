@@ -41,11 +41,20 @@ public:
   ~Application();
 
   // Buttons
+  Button lineButton;
+  Button triangleButton;
+  Button rectangleButton;
+
   Button pencilButton;
   Button eraserButton;
   Button clearButton;
   Button saveButton;
   Button loadButton;
+
+  // Drawing tool selected
+  ButtonType ActiveTool;
+  bool isDrawingLine;
+  Vector2 lineStartingPoint;
 
   // UI functions
   void InitUI();

@@ -18,91 +18,27 @@ Application::Application(const char *caption, int width, int height) {
   this->framebuffer.Resize(w, h);
 }
 
-Application::~Application() {}
+Application::~Application() {
+  ActiveTool = ButtonType::Line;
+  isDrawingLine = false;
+}
 
-void Application::Init(void) { std::cout << "Initiating app..." << std::endl; }
+void Application::Init(void) {
+  std::cout << "Initiating app..." << std::endl;
+  // define and load image for line button
+  Image *lineImg = new Image();
+  lineImg->LoadPNG("images/line.png");
+
+  // define line button
+  lineButton = Button(lineImg, 5, 5, ButtonType::Line);
+}
 
 // Init UI
 void Application::InitUI(void) {
   // Draw background bar
   framebuffer.DrawRect(0, 0, window_width, 50, Color::GRAY, 1.f, true,
                        Color::GRAY);
-
-  // Load all toolbar icons (static so they only load once)
-  static Image pencilImg, eraserImg, triangleImg, lineImg, rectangleImg,
-      clearImg, loadImg, saveImg;
-  static Image whiteImg, blackImg, redImg, greenImg, blueImg, yellowImg,
-      pinkImg;
-  static bool imagesLoaded = false;
-
-  if (!imagesLoaded) {
-    pencilImg.LoadPNG("images/pencil.png");
-    eraserImg.LoadPNG("images/eraser.png");
-    triangleImg.LoadPNG("images/triangle.png");
-    lineImg.LoadPNG("images/line.png");
-    rectangleImg.LoadPNG("images/rectangle.png");
-    clearImg.LoadPNG("images/clear.png");
-    loadImg.LoadPNG("images/load.png");
-    saveImg.LoadPNG("images/save.png");
-    imagesLoaded = true;
-    whiteImg.LoadPNG("images/white.png");
-    blackImg.LoadPNG("images/black.png");
-    redImg.LoadPNG("images/red.png");
-    greenImg.LoadPNG("images/green.png");
-    blueImg.LoadPNG("images/blue.png");
-    yellowImg.LoadPNG("images/yellow.png");
-    pinkImg.LoadPNG("images/pink.png");
-  }
-
-  // Display icons horizontally with spacing
-  int x = 5;        // Starting x position
-  int y = 5;        // Y position (a bit of padding from top)
-  int spacing = 10; // Space between icons
-
-  framebuffer.DrawImage(loadImg, x, y);
-  x += loadImg.width + spacing;
-
-  framebuffer.DrawImage(saveImg, x, y);
-  x += saveImg.width + spacing;
-
-  framebuffer.DrawImage(clearImg, x, y);
-  x += clearImg.width + spacing;
-
-  framebuffer.DrawImage(pencilImg, x, y);
-  x += pencilImg.width + spacing;
-
-  framebuffer.DrawImage(eraserImg, x, y);
-  x += eraserImg.width + spacing;
-
-  framebuffer.DrawImage(triangleImg, x, y);
-  x += triangleImg.width + spacing;
-
-  framebuffer.DrawImage(lineImg, x, y);
-  x += lineImg.width + spacing;
-
-  framebuffer.DrawImage(rectangleImg, x, y);
-  x += rectangleImg.width + spacing;
-
-  framebuffer.DrawImage(whiteImg, x, y);
-  x += whiteImg.width + spacing;
-
-  framebuffer.DrawImage(blackImg, x, y);
-  x += blackImg.width + spacing;
-
-  framebuffer.DrawImage(redImg, x, y);
-  x += redImg.width + spacing;
-
-  framebuffer.DrawImage(greenImg, x, y);
-  x += greenImg.width + spacing;
-
-  framebuffer.DrawImage(blueImg, x, y);
-  x += blueImg.width + spacing;
-
-  framebuffer.DrawImage(yellowImg, x, y);
-  x += yellowImg.width + spacing;
-
-  framebuffer.DrawImage(pinkImg, x, y);
-  x += pinkImg.width + spacing;
+  lineButton.Draw(framebuffer);
 }
 
 // Render one frame
@@ -127,6 +63,33 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
+    // Comprobar si clickeaste el botón de línea
+    if (lineButton.IsMouseInside(mouse_position)) {
+      ActiveTool = ButtonType::Line; // Activar herramienta línea
+      std::cout << "Herramienta LÍNEA activada" << std::endl;
+      return; // No hacer nada más
+    }
+
+    // Si no clickeaste ningún botón, entonces estás dibujando
+    if (mouse_position.y > 50) { // Fuera de la barra de herramientas
+      if (ActiveTool == ButtonType::Line) {
+        if (!isDrawingLine) {
+          // Primer click: guardar punto inicial
+          lineStartingPoint = mouse_position;
+          isDrawingLine = true;
+          std::cout << "Punto inicial: (" << mouse_position.x << ", "
+                    << mouse_position.y << ")" << std::endl;
+        } else {
+          // Segundo click: dibujar la línea
+          framebuffer.DrawLineDDA(lineStartingPoint.x, lineStartingPoint.y,
+                                  mouse_position.x, mouse_position.y,
+                                  Color::WHITE); // O el color que quieras
+          isDrawingLine = false;
+          std::cout << "Línea dibujada hasta: (" << mouse_position.x << ", "
+                    << mouse_position.y << ")" << std::endl;
+        }
+      }
+    }
   }
 }
 
