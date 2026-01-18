@@ -22,33 +22,94 @@ Application::~Application() {}
 
 void Application::Init(void) { std::cout << "Initiating app..." << std::endl; }
 
+// Init UI
+void Application::InitUI(void) {
+  // Draw background bar
+  framebuffer.DrawRect(0, 0, window_width, 50, Color::GRAY, 1.f, true,
+                       Color::GRAY);
+
+  // Load all toolbar icons (static so they only load once)
+  static Image pencilImg, eraserImg, triangleImg, lineImg, rectangleImg,
+      clearImg, loadImg, saveImg;
+  static Image whiteImg, blackImg, redImg, greenImg, blueImg, yellowImg,
+      pinkImg;
+  static bool imagesLoaded = false;
+
+  if (!imagesLoaded) {
+    pencilImg.LoadPNG("images/pencil.png");
+    eraserImg.LoadPNG("images/eraser.png");
+    triangleImg.LoadPNG("images/triangle.png");
+    lineImg.LoadPNG("images/line.png");
+    rectangleImg.LoadPNG("images/rectangle.png");
+    clearImg.LoadPNG("images/clear.png");
+    loadImg.LoadPNG("images/load.png");
+    saveImg.LoadPNG("images/save.png");
+    imagesLoaded = true;
+    whiteImg.LoadPNG("images/white.png");
+    blackImg.LoadPNG("images/black.png");
+    redImg.LoadPNG("images/red.png");
+    greenImg.LoadPNG("images/green.png");
+    blueImg.LoadPNG("images/blue.png");
+    yellowImg.LoadPNG("images/yellow.png");
+    pinkImg.LoadPNG("images/pink.png");
+  }
+
+  // Display icons horizontally with spacing
+  int x = 5;        // Starting x position
+  int y = 5;        // Y position (a bit of padding from top)
+  int spacing = 10; // Space between icons
+
+  framebuffer.DrawImage(loadImg, x, y);
+  x += loadImg.width + spacing;
+
+  framebuffer.DrawImage(saveImg, x, y);
+  x += saveImg.width + spacing;
+
+  framebuffer.DrawImage(clearImg, x, y);
+  x += clearImg.width + spacing;
+
+  framebuffer.DrawImage(pencilImg, x, y);
+  x += pencilImg.width + spacing;
+
+  framebuffer.DrawImage(eraserImg, x, y);
+  x += eraserImg.width + spacing;
+
+  framebuffer.DrawImage(triangleImg, x, y);
+  x += triangleImg.width + spacing;
+
+  framebuffer.DrawImage(lineImg, x, y);
+  x += lineImg.width + spacing;
+
+  framebuffer.DrawImage(rectangleImg, x, y);
+  x += rectangleImg.width + spacing;
+
+  framebuffer.DrawImage(whiteImg, x, y);
+  x += whiteImg.width + spacing;
+
+  framebuffer.DrawImage(blackImg, x, y);
+  x += blackImg.width + spacing;
+
+  framebuffer.DrawImage(redImg, x, y);
+  x += redImg.width + spacing;
+
+  framebuffer.DrawImage(greenImg, x, y);
+  x += greenImg.width + spacing;
+
+  framebuffer.DrawImage(blueImg, x, y);
+  x += blueImg.width + spacing;
+
+  framebuffer.DrawImage(yellowImg, x, y);
+  x += yellowImg.width + spacing;
+
+  framebuffer.DrawImage(pinkImg, x, y);
+  x += pinkImg.width + spacing;
+}
+
 // Render one frame
 void Application::Render(void) {
-  // ...
-  framebuffer.SetPixel(0, 0, Color::GREEN);
-  // Definimos los tres puntos del triángulo
-  Vector2 p0(400, 150); // Arriba al centro
-  Vector2 p1(150, 450); // Abajo a la izquierda
-  Vector2 p2(650, 400); // Abajo a la derecha (un poco más arriba que p1)
 
-  // Definimos los colores
-  Color border = Color::WHITE;
-  Color fill = Color::BLUE;
-
-  // Llamada a tu función
-  framebuffer.DrawTriangle(p0, p1, p2, border, true, fill);
-
-  // Test DrawImage (Load once using static)
-  static Image testImg;
-  if (testImg.width == 0)
-    testImg.LoadPNG("images/pencil.png");
-  if (testImg.width > 0)
-    framebuffer.DrawImage(testImg, 50, 50);
-
-
+  InitUI();
   framebuffer.Render();
-
-
 }
 
 // Called after render
