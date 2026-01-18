@@ -20,7 +20,8 @@ Application::Application(const char *caption, int width, int height) {
   // Initialize drawing state
   this->ActiveTool = ButtonType::Line;
   this->isDrawing = false;
-  this->borderWidth = 2; // Default border width
+  this->borderWidth = 2;        // Default border width
+  this->triangleClickCount = 0; // No triangle points yet
 }
 
 Application::~Application() {
@@ -34,9 +35,14 @@ void Application::Init(void) {
   Image *lineImg = new Image();
   lineImg->LoadPNG("images/line.png");
   lineButton = Button(lineImg, 5, 5, ButtonType::Line);
+  // Rectangle button
   Image *RectangleImg = new Image();
   RectangleImg->LoadPNG("images/rectangle.png");
   rectangleButton = Button(RectangleImg, 40, 5, ButtonType::Rectangle);
+  // Triangle button
+  Image *TriangleImg = new Image();
+  TriangleImg->LoadPNG("images/triangle.png");
+  triangleButton = Button(TriangleImg, 75, 5, ButtonType::Triangle);
 }
 
 // Init UI
@@ -44,6 +50,7 @@ void Application::InitUI(void) {
   // Draw buttons
   lineButton.Draw(framebuffer);
   rectangleButton.Draw(framebuffer);
+  triangleButton.Draw(framebuffer);
 }
 
 // Render one frame
@@ -99,6 +106,13 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       return;
     }
 
+    if (triangleButton.IsMouseInside(mouse_position)) {
+      ActiveTool = ButtonType::Triangle;
+      triangleClickCount = 0; // Reset triangle state
+      std::cout << "Triangle tool activated" << std::endl;
+      return;
+    }
+
     // If clicked outside the toolbar
     if (mouse_position.y > 50) {
       if (ActiveTool == ButtonType::Line) {
@@ -129,6 +143,27 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
                                Color::BLACK);
           isDrawing = false;
           std::cout << "Rectángulo dibujado" << std::endl;
+        }
+      } else if (ActiveTool == ButtonType::Triangle) {
+        // Triangle needs 3 clicks
+        if (triangleClickCount == 0) {
+          // First click: store first point
+          trianglePoint1 = mouse_position;
+          triangleClickCount = 1;
+          std::cout << "Triangle - Point 1" << std::endl;
+        } else if (triangleClickCount == 1) {
+          // Second click: store second point
+          trianglePoint2 = mouse_position;
+          triangleClickCount = 2;
+          std::cout << "Triangle - Point 2" << std::endl;
+        } else if (triangleClickCount == 2) {
+          // Third click: draw the triangle
+          Vector2 trianglePoint3 = mouse_position;
+          framebuffer.DrawTriangle(trianglePoint1, trianglePoint2,
+                                   trianglePoint3, Color::WHITE, false,
+                                   Color::BLACK);
+          triangleClickCount = 0; // Reset for next triangle
+          std::cout << "Triangle drawn" << std::endl;
         }
       }
     }

@@ -56,6 +56,11 @@ public:
   bool isDrawing;         // Are we drawing something?
   Vector2 drawStartPoint; // Initial point (for line, rectangle, etc.)
 
+  // Triangle-specific state (needs 3 points)
+  int triangleClickCount; // 0, 1, or 2 (how many points we have)
+  Vector2 trianglePoint1;
+  Vector2 trianglePoint2;
+
   // Drawing properties
   int borderWidth; // Border thickness for rectangles
 
