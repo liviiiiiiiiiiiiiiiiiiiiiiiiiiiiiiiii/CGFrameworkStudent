@@ -16,29 +16,34 @@ Application::Application(const char *caption, int width, int height) {
   this->keystate = SDL_GetKeyboardState(nullptr);
 
   this->framebuffer.Resize(w, h);
+
+  // Initialize drawing state
+  this->ActiveTool = ButtonType::Line;
+  this->isDrawing = false;
+  this->borderWidth = 2; // Default border width
 }
 
 Application::~Application() {
   ActiveTool = ButtonType::Line;
-  isDrawingLine = false;
+  isDrawing = false;
 }
 
 void Application::Init(void) {
   std::cout << "Initiating app..." << std::endl;
-  // define and load image for line button
+  // define and load image for line button. Then create button
   Image *lineImg = new Image();
   lineImg->LoadPNG("images/line.png");
-
-  // define line button
   lineButton = Button(lineImg, 5, 5, ButtonType::Line);
+  Image *RectangleImg = new Image();
+  RectangleImg->LoadPNG("images/rectangle.png");
+  rectangleButton = Button(RectangleImg, 40, 5, ButtonType::Rectangle);
 }
 
 // Init UI
 void Application::InitUI(void) {
-  // Draw background bar
-  framebuffer.DrawRect(0, 0, window_width, 50, Color::GRAY, 1.f, true,
-                       Color::GRAY);
+  // Draw buttons
   lineButton.Draw(framebuffer);
+  rectangleButton.Draw(framebuffer);
 }
 
 // Render one frame
@@ -58,41 +63,77 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
   case SDLK_ESCAPE:
     exit(0);
     break; // ESC key, kill the app
+
+  case '=': // = key (also + with shift)
+  case '+': // + key
+    borderWidth++;
+    if (borderWidth > 20)
+      borderWidth = 20; // Max limit
+    std::cout << "Border width: " << borderWidth << std::endl;
+    break;
+
+  case '-': // - key
+  case '_': // _ key
+    borderWidth--;
+    if (borderWidth < 1)
+      borderWidth = 1; // Min limit
+    std::cout << "Border width: " << borderWidth << std::endl;
+    break;
   }
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
-    // Comprobar si clickeaste el botón de línea
+    // check click on buttons
     if (lineButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::Line; // Activar herramienta línea
-      std::cout << "Herramienta LÍNEA activada" << std::endl;
-      return; // No hacer nada más
+      ActiveTool = ButtonType::Line;
+      isDrawing = false; // Reset state
+      std::cout << "Line tool activated" << std::endl;
+      return;
     }
 
-    // Si no clickeaste ningún botón, entonces estás dibujando
-    if (mouse_position.y > 50) { // Fuera de la barra de herramientas
+    if (rectangleButton.IsMouseInside(mouse_position)) {
+      ActiveTool = ButtonType::Rectangle;
+      isDrawing = false; // Reset state
+      std::cout << "Rectangle tool activated" << std::endl;
+      return;
+    }
+
+    // If clicked outside the toolbar
+    if (mouse_position.y > 50) {
       if (ActiveTool == ButtonType::Line) {
-        if (!isDrawingLine) {
-          // Primer click: guardar punto inicial
-          lineStartingPoint = mouse_position;
-          isDrawingLine = true;
-          std::cout << "Punto inicial: (" << mouse_position.x << ", "
-                    << mouse_position.y << ")" << std::endl;
+        if (!isDrawing) {
+          drawStartPoint = mouse_position;
+          isDrawing = true;
+          std::cout << "Line - Initial point" << std::endl;
         } else {
-          // Segundo click: dibujar la línea
-          framebuffer.DrawLineDDA(lineStartingPoint.x, lineStartingPoint.y,
+          framebuffer.DrawLineDDA(drawStartPoint.x, drawStartPoint.y,
                                   mouse_position.x, mouse_position.y,
-                                  Color::WHITE); // O el color que quieras
-          isDrawingLine = false;
-          std::cout << "Línea dibujada hasta: (" << mouse_position.x << ", "
-                    << mouse_position.y << ")" << std::endl;
+                                  Color::WHITE);
+          isDrawing = false;
+          std::cout << "Line drawn" << std::endl;
+        }
+      } else if (ActiveTool == ButtonType::Rectangle) {
+        if (!isDrawing) {
+          drawStartPoint = mouse_position;
+          isDrawing = true;
+          std::cout << "Rectángulo - Primera esquina" << std::endl;
+        } else {
+          // Calculate width and height of the rectangle
+          int x = std::min(drawStartPoint.x, mouse_position.x);
+          int y = std::min(drawStartPoint.y, mouse_position.y);
+          int w = std::abs(mouse_position.x - drawStartPoint.x);
+          int h = std::abs(mouse_position.y - drawStartPoint.y);
+
+          framebuffer.DrawRect(x, y, w, h, Color::WHITE, borderWidth, false,
+                               Color::BLACK);
+          isDrawing = false;
+          std::cout << "Rectángulo dibujado" << std::endl;
         }
       }
     }
   }
 }
-
 void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
   }

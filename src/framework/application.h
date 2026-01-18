@@ -51,10 +51,13 @@ public:
   Button saveButton;
   Button loadButton;
 
-  // Drawing tool selected
+  // drawing state
   ButtonType ActiveTool;
-  bool isDrawingLine;
-  Vector2 lineStartingPoint;
+  bool isDrawing;         // Are we drawing something?
+  Vector2 drawStartPoint; // Initial point (for line, rectangle, etc.)
+
+  // Drawing properties
+  int borderWidth; // Border thickness for rectangles
 
   // UI functions
   void InitUI();
