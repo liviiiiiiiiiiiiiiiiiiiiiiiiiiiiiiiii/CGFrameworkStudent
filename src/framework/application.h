@@ -51,6 +51,16 @@ public:
   Button saveButton;
   Button loadButton;
 
+  // Color buttons
+  Button whiteColorButton;
+  Button blackColorButton;
+  Button redColorButton;
+  Button greenColorButton;
+  Button blueColorButton;
+  Button yellowColorButton;
+  Button pinkColorButton;
+  Button cyanColorButton;
+
   // drawing state
   ButtonType ActiveTool;
   bool isDrawing;         // Are we drawing something?
@@ -62,7 +72,13 @@ public:
   Vector2 trianglePoint2;
 
   // Drawing properties
-  int borderWidth; // Border thickness for rectangles
+  int borderWidth;    // Border thickness for rectangles
+  Color currentColor; // Current drawing color (border)
+  Color fillColor;    // Current fill color
+  bool isFilled;      // Whether shapes should be filled
+
+  enum ColorMode { BORDER, FILL };
+  ColorMode colorMode; // Whether we're setting border or fill color
 
   // UI functions
   void InitUI();

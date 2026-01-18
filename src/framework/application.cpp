@@ -20,8 +20,12 @@ Application::Application(const char *caption, int width, int height) {
   // Initialize drawing state
   this->ActiveTool = ButtonType::Line;
   this->isDrawing = false;
-  this->borderWidth = 2;        // Default border width
-  this->triangleClickCount = 0; // No triangle points yet
+  this->borderWidth = 2;             // Default border width
+  this->triangleClickCount = 0;      // No triangle points yet
+  this->currentColor = Color::WHITE; // Default drawing color
+  this->fillColor = Color::BLACK;    // Default fill color
+  this->isFilled = false;            // Shapes not filled by default
+  this->colorMode = BORDER;          // Start in border color mode
 }
 
 Application::~Application() {
@@ -43,6 +47,50 @@ void Application::Init(void) {
   Image *TriangleImg = new Image();
   TriangleImg->LoadPNG("images/triangle.png");
   triangleButton = Button(TriangleImg, 75, 5, ButtonType::Triangle);
+
+  // Color buttons (positioned after tool buttons)
+  int colorX = 120; // Starting X position for colors
+  int colorY = 5;
+  int colorSpacing = 35;
+
+  Image *whiteImg = new Image();
+  whiteImg->LoadPNG("images/white.png");
+  whiteColorButton = Button(whiteImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *blackImg = new Image();
+  blackImg->LoadPNG("images/black.png");
+  blackColorButton = Button(blackImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *redImg = new Image();
+  redImg->LoadPNG("images/red.png");
+  redColorButton = Button(redImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *greenImg = new Image();
+  greenImg->LoadPNG("images/green.png");
+  greenColorButton = Button(greenImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *blueImg = new Image();
+  blueImg->LoadPNG("images/blue.png");
+  blueColorButton = Button(blueImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *yellowImg = new Image();
+  yellowImg->LoadPNG("images/yellow.png");
+  yellowColorButton = Button(yellowImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *pinkImg = new Image();
+  pinkImg->LoadPNG("images/pink.png");
+  pinkColorButton = Button(pinkImg, colorX, colorY, ButtonType::Colors);
+  colorX += colorSpacing;
+
+  Image *cyanImg = new Image();
+  cyanImg->LoadPNG("images/cyan.png");
+  cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::Colors);
 }
 
 // Init UI
@@ -51,6 +99,16 @@ void Application::InitUI(void) {
   lineButton.Draw(framebuffer);
   rectangleButton.Draw(framebuffer);
   triangleButton.Draw(framebuffer);
+
+  // Draw color buttons
+  whiteColorButton.Draw(framebuffer);
+  blackColorButton.Draw(framebuffer);
+  redColorButton.Draw(framebuffer);
+  greenColorButton.Draw(framebuffer);
+  blueColorButton.Draw(framebuffer);
+  yellowColorButton.Draw(framebuffer);
+  pinkColorButton.Draw(framebuffer);
+  cyanColorButton.Draw(framebuffer);
 }
 
 // Render one frame
@@ -86,6 +144,19 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
       borderWidth = 1; // Min limit
     std::cout << "Border width: " << borderWidth << std::endl;
     break;
+
+  case 'f': // Toggle fill
+  case 'F':
+    isFilled = !isFilled;
+    std::cout << "Fill: " << (isFilled ? "ON" : "OFF") << std::endl;
+    break;
+
+  case 'c': // Toggle color mode (border vs fill)
+  case 'C':
+    colorMode = (colorMode == BORDER) ? FILL : BORDER;
+    std::cout << "Color Mode: " << (colorMode == BORDER ? "BORDER" : "FILL")
+              << std::endl;
+    break;
   }
 }
 
@@ -113,6 +184,88 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       return;
     }
 
+    // Color button clicks - sets border or fill color based on current mode
+    if (whiteColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::WHITE;
+        std::cout << "Border Color: WHITE" << std::endl;
+      } else {
+        fillColor = Color::WHITE;
+        std::cout << "Fill Color: WHITE" << std::endl;
+      }
+      return;
+    }
+    if (blackColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::BLACK;
+        std::cout << "Border Color: BLACK" << std::endl;
+      } else {
+        fillColor = Color::BLACK;
+        std::cout << "Fill Color: BLACK" << std::endl;
+      }
+      return;
+    }
+    if (redColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::RED;
+        std::cout << "Border Color: RED" << std::endl;
+      } else {
+        fillColor = Color::RED;
+        std::cout << "Fill Color: RED" << std::endl;
+      }
+      return;
+    }
+    if (greenColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::GREEN;
+        std::cout << "Border Color: GREEN" << std::endl;
+      } else {
+        fillColor = Color::GREEN;
+        std::cout << "Fill Color: GREEN" << std::endl;
+      }
+      return;
+    }
+    if (blueColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::BLUE;
+        std::cout << "Border Color: BLUE" << std::endl;
+      } else {
+        fillColor = Color::BLUE;
+        std::cout << "Fill Color: BLUE" << std::endl;
+      }
+      return;
+    }
+    if (yellowColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::YELLOW;
+        std::cout << "Border Color: YELLOW" << std::endl;
+      } else {
+        fillColor = Color::YELLOW;
+        std::cout << "Fill Color: YELLOW" << std::endl;
+      }
+      return;
+    }
+    if (pinkColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::PURPLE;
+        std::cout << "Border Color: PURPLE" << std::endl;
+      } else {
+        fillColor = Color::PURPLE;
+        std::cout << "Fill Color: PURPLE" << std::endl;
+      }
+      return;
+    }
+    if (cyanColorButton.IsMouseInside(mouse_position)) {
+      if (colorMode == BORDER) {
+        currentColor = Color::CYAN;
+        std::cout << "Border Color: CYAN" << std::endl;
+      } else {
+        fillColor = Color::CYAN;
+        std::cout << "Fill Color: CYAN" << std::endl;
+      }
+      return;
+    }
+
     // If clicked outside the toolbar
     if (mouse_position.y > 50) {
       if (ActiveTool == ButtonType::Line) {
@@ -123,7 +276,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
         } else {
           framebuffer.DrawLineDDA(drawStartPoint.x, drawStartPoint.y,
                                   mouse_position.x, mouse_position.y,
-                                  Color::WHITE);
+                                  currentColor);
           isDrawing = false;
           std::cout << "Line drawn" << std::endl;
         }
@@ -139,8 +292,8 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           int w = std::abs(mouse_position.x - drawStartPoint.x);
           int h = std::abs(mouse_position.y - drawStartPoint.y);
 
-          framebuffer.DrawRect(x, y, w, h, Color::WHITE, borderWidth, false,
-                               Color::BLACK);
+          framebuffer.DrawRect(x, y, w, h, currentColor, borderWidth, isFilled,
+                               fillColor);
           isDrawing = false;
           std::cout << "Rectángulo dibujado" << std::endl;
         }
@@ -160,8 +313,8 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           // Third click: draw the triangle
           Vector2 trianglePoint3 = mouse_position;
           framebuffer.DrawTriangle(trianglePoint1, trianglePoint2,
-                                   trianglePoint3, Color::WHITE, false,
-                                   Color::BLACK);
+                                   trianglePoint3, currentColor, isFilled,
+                                   fillColor);
           triangleClickCount = 0; // Reset for next triangle
           std::cout << "Triangle drawn" << std::endl;
         }
