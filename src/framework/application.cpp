@@ -18,7 +18,7 @@ Application::Application(const char *caption, int width, int height) {
   this->framebuffer.Resize(w, h);
 
   // Initialize drawing state
-  this->ActiveTool = ButtonType::Line;
+  this->ActiveTool = ButtonType::LINE;
   this->isDrawing = false;
   this->borderWidth = 2;             // Default border width
   this->triangleClickCount = 0;      // No triangle points yet
@@ -29,7 +29,7 @@ Application::Application(const char *caption, int width, int height) {
 }
 
 Application::~Application() {
-  ActiveTool = ButtonType::Line;
+  ActiveTool = ButtonType::LINE;
   isDrawing = false;
 }
 
@@ -38,15 +38,15 @@ void Application::Init(void) {
   // define and load image for line button. Then create button
   Image *lineImg = new Image();
   lineImg->LoadPNG("images/line.png");
-  lineButton = Button(lineImg, 5, 5, ButtonType::Line);
+  lineButton = Button(lineImg, 5, 5, ButtonType::LINE);
   // Rectangle button
   Image *RectangleImg = new Image();
   RectangleImg->LoadPNG("images/rectangle.png");
-  rectangleButton = Button(RectangleImg, 40, 5, ButtonType::Rectangle);
+  rectangleButton = Button(RectangleImg, 40, 5, ButtonType::RECTANGLEB);
   // Triangle button
   Image *TriangleImg = new Image();
   TriangleImg->LoadPNG("images/triangle.png");
-  triangleButton = Button(TriangleImg, 75, 5, ButtonType::Triangle);
+  triangleButton = Button(TriangleImg, 75, 5, ButtonType::TRIANGLE);
 
   // Color buttons (positioned after tool buttons)
   int colorX = 120; // Starting X position for colors
@@ -55,42 +55,42 @@ void Application::Init(void) {
 
   Image *whiteImg = new Image();
   whiteImg->LoadPNG("images/white.png");
-  whiteColorButton = Button(whiteImg, colorX, colorY, ButtonType::Colors);
+  whiteColorButton = Button(whiteImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *blackImg = new Image();
   blackImg->LoadPNG("images/black.png");
-  blackColorButton = Button(blackImg, colorX, colorY, ButtonType::Colors);
+  blackColorButton = Button(blackImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *redImg = new Image();
   redImg->LoadPNG("images/red.png");
-  redColorButton = Button(redImg, colorX, colorY, ButtonType::Colors);
+  redColorButton = Button(redImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *greenImg = new Image();
   greenImg->LoadPNG("images/green.png");
-  greenColorButton = Button(greenImg, colorX, colorY, ButtonType::Colors);
+  greenColorButton = Button(greenImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *blueImg = new Image();
   blueImg->LoadPNG("images/blue.png");
-  blueColorButton = Button(blueImg, colorX, colorY, ButtonType::Colors);
+  blueColorButton = Button(blueImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *yellowImg = new Image();
   yellowImg->LoadPNG("images/yellow.png");
-  yellowColorButton = Button(yellowImg, colorX, colorY, ButtonType::Colors);
+  yellowColorButton = Button(yellowImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *pinkImg = new Image();
   pinkImg->LoadPNG("images/pink.png");
-  pinkColorButton = Button(pinkImg, colorX, colorY, ButtonType::Colors);
+  pinkColorButton = Button(pinkImg, colorX, colorY, ButtonType::COLORS);
   colorX += colorSpacing;
 
   Image *cyanImg = new Image();
   cyanImg->LoadPNG("images/cyan.png");
-  cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::Colors);
+  cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::COLORS);
 }
 
 // Init UI
@@ -164,21 +164,21 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
     // check click on buttons
     if (lineButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::Line;
+      ActiveTool = ButtonType::LINE;
       isDrawing = false; // Reset state
       std::cout << "Line tool activated" << std::endl;
       return;
     }
 
     if (rectangleButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::Rectangle;
+      ActiveTool = ButtonType::RECTANGLEB;
       isDrawing = false; // Reset state
       std::cout << "Rectangle tool activated" << std::endl;
       return;
     }
 
     if (triangleButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::Triangle;
+      ActiveTool = ButtonType::TRIANGLE;
       triangleClickCount = 0; // Reset triangle state
       std::cout << "Triangle tool activated" << std::endl;
       return;
@@ -268,7 +268,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
 
     // If clicked outside the toolbar
     if (mouse_position.y > 50) {
-      if (ActiveTool == ButtonType::Line) {
+      if (ActiveTool == ButtonType::LINE) {
         if (!isDrawing) {
           drawStartPoint = mouse_position;
           isDrawing = true;
@@ -280,7 +280,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           isDrawing = false;
           std::cout << "Line drawn" << std::endl;
         }
-      } else if (ActiveTool == ButtonType::Rectangle) {
+      } else if (ActiveTool == ButtonType::RECTANGLEB) {
         if (!isDrawing) {
           drawStartPoint = mouse_position;
           isDrawing = true;
@@ -297,7 +297,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           isDrawing = false;
           std::cout << "Rectángulo dibujado" << std::endl;
         }
-      } else if (ActiveTool == ButtonType::Triangle) {
+      } else if (ActiveTool == ButtonType::TRIANGLE) {
         // Triangle needs 3 clicks
         if (triangleClickCount == 0) {
           // First click: store first point

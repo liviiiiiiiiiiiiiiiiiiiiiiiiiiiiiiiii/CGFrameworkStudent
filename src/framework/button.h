@@ -4,14 +4,14 @@
 #include "image.h"
 
 enum ButtonType {
-    Line,
-    Rectangle,
-    Triangle,
-    Colors,
-    Pencil,
-    Eraser,
+    LINE,
+	RECTANGLEB,
+    TRIANGLE,
+    COLORS,
+    PENCIL,
+    ERASER,
     ClearImage,
-    LoadImage,
+    LoadImageBtn,
     SaveImage   
 };
 
