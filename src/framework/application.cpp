@@ -35,14 +35,18 @@ Application::~Application() {
 
 void Application::Init(void) {
   std::cout << "Initiating app..." << std::endl;
+
+  
   // define and load image for line button. Then create button
   Image *lineImg = new Image();
   lineImg->LoadPNG("images/line.png");
   lineButton = Button(lineImg, 5, 5, ButtonType::LINE);
+
   // Rectangle button
   Image *RectangleImg = new Image();
   RectangleImg->LoadPNG("images/rectangle.png");
   rectangleButton = Button(RectangleImg, 40, 5, ButtonType::RECTANGLEB);
+
   // Triangle button
   Image *TriangleImg = new Image();
   TriangleImg->LoadPNG("images/triangle.png");
@@ -91,6 +95,31 @@ void Application::Init(void) {
   Image *cyanImg = new Image();
   cyanImg->LoadPNG("images/cyan.png");
   cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::COLORS);
+
+  // Pencil button
+  Image* pencilImg = new Image();
+  pencilImg->LoadPNG("images/pencil.png");
+  pencilButton = Button(pencilImg, 435, 5, ButtonType::PENCIL);
+
+  // Eraser button
+  Image* eraserImg = new Image();
+  eraserImg->LoadPNG("images/eraser.png");
+  eraserButton = Button(eraserImg, 470, 5, ButtonType::ERASER);
+
+  // Clear button
+  Image* clearImg = new Image();
+  clearImg->LoadPNG("images/clear.png");
+  clearButton = Button(clearImg, 505, 5, ButtonType::ClearImage);
+
+  // Save button
+  Image* saveImg = new Image();
+  saveImg->LoadPNG("images/save.png");
+  saveButton = Button(saveImg, 540, 5, ButtonType::SaveImage);
+
+  // Load button
+  Image* loadImg = new Image();
+  loadImg->LoadPNG("images/load.png");
+  loadButton = Button(loadImg, 575, 5, ButtonType::LoadImageBtn);
 }
 
 // Init UI
@@ -99,6 +128,9 @@ void Application::InitUI(void) {
   lineButton.Draw(framebuffer);
   rectangleButton.Draw(framebuffer);
   triangleButton.Draw(framebuffer);
+  pencilButton.Draw(framebuffer);
+  eraserButton.Draw(framebuffer);
+  clearButton.Draw(framebuffer);
 
   // Draw color buttons
   whiteColorButton.Draw(framebuffer);
@@ -109,11 +141,15 @@ void Application::InitUI(void) {
   yellowColorButton.Draw(framebuffer);
   pinkColorButton.Draw(framebuffer);
   cyanColorButton.Draw(framebuffer);
+
+  // Draw save and load buttons
+  saveButton.Draw(framebuffer);
+  loadButton.Draw(framebuffer);
 }
 
 // Render one frame
 void Application::Render(void) {
-
+	framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
   framebuffer.Render();
 }
@@ -265,6 +301,43 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       }
       return;
     }
+    if (clearButton.IsMouseInside(mouse_position)) {
+      framebuffer.Fill(Color::BLACK);
+      std::cout << "Canvas cleared" << std::endl;
+      return; // Note: This doesn't change ActiveTool
+    }
+    if (saveButton.IsMouseInside(mouse_position)) {
+      if (framebuffer.SaveTGA("drawing.tga")) {
+        std::cout << "Drawing saved to drawing.tga" << std::endl;
+      } else {
+        std::cout << "Failed to save drawing" << std::endl;
+      }
+      return; 
+    }
+
+    if (loadButton.IsMouseInside(mouse_position)) {
+      if (framebuffer.LoadTGA("drawing.tga")) {
+        std::cout << "Drawing loaded from drawing.tga" << std::endl;
+      } else {
+        std::cout << "Failed to load drawing" << std::endl;
+      }
+      return;
+    }     
+    
+    if (pencilButton.IsMouseInside(mouse_position)) {
+      ActiveTool = ButtonType::PENCIL;
+      isDrawing = false;
+      std::cout << "Pencil tool activated" << std::endl;
+      return;
+    }
+
+    if (eraserButton.IsMouseInside(mouse_position)) {
+      ActiveTool = ButtonType::ERASER;
+      isDrawing = false;
+      std::cout << "Eraser tool activated" << std::endl;
+      return;
+    }
+
 
     // If clicked outside the toolbar
     if (mouse_position.y > 50) {
@@ -322,6 +395,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
     }
   }
 }
+
 void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
   }
