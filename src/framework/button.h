@@ -5,7 +5,7 @@
 
 enum ButtonType {
     LINE,
-	RECTANGLEB,
+    RECTANGLEB,
     TRIANGLE,
     COLORS,
     PENCIL,
@@ -25,5 +25,6 @@ public:
     Button(Image* img, float x, float y, ButtonType t);
 
     bool IsMouseInside(const Vector2& mousePosition);
-    void Draw(Image& framebuffer);
+    void Draw(Image &framebuffer);
+
 };
