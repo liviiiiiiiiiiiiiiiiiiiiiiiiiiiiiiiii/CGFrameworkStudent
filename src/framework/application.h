@@ -72,10 +72,11 @@ public:
   Vector2 trianglePoint2;
 
   // Drawing properties
-  int borderWidth;    // Border thickness for rectangles
-  Color currentColor; // Current drawing color (border)
-  Color fillColor;    // Current fill color
-  bool isFilled;      // Whether shapes should be filled
+  int borderWidth;            // Border thickness for rectangles
+  Color currentColor;         // Current drawing color (border)
+  Color fillColor;            // Current fill color
+  bool isFilled;              // Whether shapes should be filled
+  Vector2 lastPencilPosition; // Last position when drawing with the pencil
 
   enum ColorMode { BORDER, FILL };
   ColorMode colorMode; // Whether we're setting border or fill color

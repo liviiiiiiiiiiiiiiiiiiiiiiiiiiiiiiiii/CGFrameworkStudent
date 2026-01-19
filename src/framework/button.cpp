@@ -1,15 +1,15 @@
 #include "button.h"
 
 Button::Button() {
-  Image *image = NULL;
-  Vector2 position = Vector2(0, 0);
-  ButtonType type = LINE;
+  image = NULL;
+  position = Vector2(0, 0);
+  type = LINE;
 }
 
 Button::Button(Image *img, float x, float y, ButtonType t) {
-  Image *image = img;
-  Vector2 position = Vector2(x, y);
-  ButtonType type = t;
+  image = img;
+  position = Vector2(x, y);
+  type = t;
 }
 
 bool Button::IsMouseInside(const Vector2 &mousePosition) {
@@ -23,7 +23,7 @@ bool Button::IsMouseInside(const Vector2 &mousePosition) {
 }
 
 void Button::Draw(Image &framebuffer) {
-  if (&framebuffer == NULL)
+  if (image == NULL)
     return;
-  framebuffer.DrawImage(framebuffer, position.x, position.y);
+  framebuffer.DrawImage(*image, position.x, position.y);
 }

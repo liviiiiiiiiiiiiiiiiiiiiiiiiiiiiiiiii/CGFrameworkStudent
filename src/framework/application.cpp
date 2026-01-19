@@ -26,6 +26,8 @@ Application::Application(const char *caption, int width, int height) {
   this->fillColor = Color::BLACK;    // Default fill color
   this->isFilled = false;            // Shapes not filled by default
   this->colorMode = BORDER;          // Start in border color mode
+
+  this->lastPencilPosition = Vector2(0, 0);
 }
 
 Application::~Application() {
@@ -36,7 +38,6 @@ Application::~Application() {
 void Application::Init(void) {
   std::cout << "Initiating app..." << std::endl;
 
-  
   // define and load image for line button. Then create button
   Image *lineImg = new Image();
   lineImg->LoadPNG("images/line.png");
@@ -97,27 +98,27 @@ void Application::Init(void) {
   cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::COLORS);
 
   // Pencil button
-  Image* pencilImg = new Image();
+  Image *pencilImg = new Image();
   pencilImg->LoadPNG("images/pencil.png");
   pencilButton = Button(pencilImg, 435, 5, ButtonType::PENCIL);
 
   // Eraser button
-  Image* eraserImg = new Image();
+  Image *eraserImg = new Image();
   eraserImg->LoadPNG("images/eraser.png");
   eraserButton = Button(eraserImg, 470, 5, ButtonType::ERASER);
 
   // Clear button
-  Image* clearImg = new Image();
+  Image *clearImg = new Image();
   clearImg->LoadPNG("images/clear.png");
   clearButton = Button(clearImg, 505, 5, ButtonType::ClearImage);
 
   // Save button
-  Image* saveImg = new Image();
+  Image *saveImg = new Image();
   saveImg->LoadPNG("images/save.png");
   saveButton = Button(saveImg, 540, 5, ButtonType::SaveImage);
 
   // Load button
-  Image* loadImg = new Image();
+  Image *loadImg = new Image();
   loadImg->LoadPNG("images/load.png");
   loadButton = Button(loadImg, 575, 5, ButtonType::LoadImageBtn);
 }
@@ -149,7 +150,7 @@ void Application::InitUI(void) {
 
 // Render one frame
 void Application::Render(void) {
-	framebuffer.SetPixel(0, 0, Color::GREEN);
+  framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
   framebuffer.Render();
 }
@@ -312,7 +313,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       } else {
         std::cout << "Failed to save drawing" << std::endl;
       }
-      return; 
+      return;
     }
 
     if (loadButton.IsMouseInside(mouse_position)) {
@@ -322,8 +323,8 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
         std::cout << "Failed to load drawing" << std::endl;
       }
       return;
-    }     
-    
+    }
+
     if (pencilButton.IsMouseInside(mouse_position)) {
       ActiveTool = ButtonType::PENCIL;
       isDrawing = false;
@@ -337,7 +338,6 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       std::cout << "Eraser tool activated" << std::endl;
       return;
     }
-
 
     // If clicked outside the toolbar
     if (mouse_position.y > 50) {
@@ -391,6 +391,10 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           triangleClickCount = 0; // Reset for next triangle
           std::cout << "Triangle drawn" << std::endl;
         }
+      } else if (ActiveTool == ButtonType::PENCIL) {
+        lastPencilPosition = mouse_position;
+        isDrawing = true;
+        std::cout << "Pencil - Started drawing" << std::endl;
       }
     }
   }
@@ -398,10 +402,20 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
 
 void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
+    if (ActiveTool == ButtonType::PENCIL && isDrawing) {
+      isDrawing = false;
+      std::cout << "Pencil - Stopped drawing" << std::endl;
+    }
   }
 }
 
-void Application::OnMouseMove(SDL_MouseButtonEvent event) {}
+void Application::OnMouseMove(SDL_MouseButtonEvent event) {
+  if (isDrawing && ActiveTool == ButtonType::PENCIL) {
+    framebuffer.DrawLineDDA(lastPencilPosition.x, lastPencilPosition.y,
+                            mouse_position.x, mouse_position.y, currentColor);
+    lastPencilPosition = mouse_position; // Update for next segment
+  }
+}
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {
   float dy = event.preciseY;
