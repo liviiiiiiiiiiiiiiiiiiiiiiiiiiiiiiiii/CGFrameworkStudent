@@ -335,7 +335,7 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
     }
 
     if (loadButton.IsMouseInside(mouse_position)) {
-      if (framebuffer.LoadTGA("drawing.tga")) {
+      if (framebuffer.LoadTGA("drawing.tga", true)) {
         std::cout << "Drawing loaded from drawing.tga" << std::endl;
       } else {
         std::cout << "Failed to load drawing" << std::endl;
