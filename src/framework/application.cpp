@@ -23,7 +23,7 @@ Application::Application(const char *caption, int width, int height) {
   this->borderWidth = 2;             // Default border width
   this->triangleClickCount = 0;      // No triangle points yet
   this->currentColor = Color::WHITE; // Default drawing color
-  this->fillColor = Color::BLACK;    // Default fill color
+  this->fillColor = Color::WHITE;    // Default fill color
   this->isFilled = false;            // Shapes not filled by default
   this->colorMode = BORDER;          // Start in border color mode
 
@@ -153,28 +153,24 @@ void Application::InitUI(void) {
   loadButton.Draw(framebuffer);
 }
 
-// Render one frame
 void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
 
-  showParticles = true;
   if(showParticles) {
       pS.Render(&framebuffer);
   }
-
   
   framebuffer.Render();
 }
 
-// Called after render
 void Application::Update(float seconds_elapsed){
   if(showParticles) {
       pS.Update(seconds_elapsed, window_width, window_height);
       framebuffer.Fill(Color::BLACK);
-
   } 
 }
+
 
 // keyboard press event
 void Application::OnKeyPressed(SDL_KeyboardEvent event) {
@@ -212,7 +208,21 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     std::cout << "Color Mode: " << (colorMode == BORDER ? "BORDER" : "FILL")
               << std::endl;
     break;
+
+
+  case '1': // Switch to paint mode (disable particles)
+    showParticles = false;
+    std::cout << "Paint mode activated" << std::endl;
+    break;
+  
+
+  case '2': // Switch to animation mode (enable particles)
+    showParticles = true;
+    std::cout << "Animation mode activated" << std::endl;
+    break;
+
   }
+
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {

@@ -10,12 +10,11 @@ public:
     
     struct Particle {
         Vector2 position;
-        Vector2 velocity; // Normalized speed and direction of the particle
+        Vector2 velocity;
         Color color;
         float acceleration;
-        float ttl; // Time left until the particle expires
-        bool inactive; // Particle is not used/expired, so it can be recreated
-        
+        float ttl;
+        bool inactive;
     };
 
     Particle particles[MAX_PARTICLES];

@@ -46,13 +46,11 @@ void ParticleSystem::Render(Image* framebuffer) {
         
         if (x >= 0 && x < (framebuffer->width) && y >= 0 && y < (framebuffer->height)) {
             framebuffer->SetPixel(x, y, p.color);
-
         }
     }
 }
 
 void ParticleSystem::Update(float dt, int width, int height) {
-          
     for (int i = 0; i < MAX_PARTICLES; i++) {
         Particle& p = particles[i];
         
@@ -94,7 +92,6 @@ void ParticleSystem::Update(float dt, int width, int height) {
         
         p.position.x += p.velocity.x * dt;
         p.position.y += p.velocity.y * dt;
-        
         
         if (p.position.x < 0) {
             p.position.x = 0;
