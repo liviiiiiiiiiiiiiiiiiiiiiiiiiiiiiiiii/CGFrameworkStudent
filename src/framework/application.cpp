@@ -31,7 +31,7 @@ Application::Application(const char *caption, int width, int height) {
 
   // Particle system
   this->showParticles = true;
-  this->pS.Init();
+  this->pS.Init(width, height);
 
 }
 
@@ -170,7 +170,7 @@ void Application::Render(void) {
 // Called after render
 void Application::Update(float seconds_elapsed){
   if(showParticles) {
-      pS.Update(seconds_elapsed);
+      pS.Update(seconds_elapsed, window_width, window_height);
       framebuffer.Fill(Color::BLACK);
 
   } 

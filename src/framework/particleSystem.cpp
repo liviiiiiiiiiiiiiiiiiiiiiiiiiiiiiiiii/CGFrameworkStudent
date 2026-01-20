@@ -1,41 +1,33 @@
 #include "particlesystem.h"
+#include "application.h"
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
 
 ParticleSystem::ParticleSystem() {
-    std::srand(static_cast<unsigned int>(time(NULL)));
+    std::srand(std::time(0)); 
 }
 
-void ParticleSystem::Init(){
-    std::cout << "Initializing particle system with " << MAX_PARTICLES << " particles" << std::endl;
-    
-    srand(static_cast<unsigned int>(time(NULL)));
+void ParticleSystem::Init(int windowWidth, int windowHeight) {
+    std::cout << "Initializing particle system with " << MAX_PARTICLES << " particles\n";
     
     // Initialize all particles
     for (int i = 0; i < MAX_PARTICLES; i++) {
         Particle& p = particles[i];
         
-        p.position.x = static_cast<float>(rand() % 800 );  
-        p.position.y = static_cast<float>(rand() % 600);
+        p.position.x = (rand() % windowWidth);  
+        p.position.y = (rand() % windowHeight);
         
-        float angle = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 2.0f * 3.14159f;
-        p.velocity.x = cos(angle);
-        p.velocity.y = sin(angle);
+        float angle = (rand() / (float)RAND_MAX) * 2.0f * 3.14159f;
+        float speed = 10.0f + (rand() / (float)RAND_MAX) * 90.0f;
+        p.velocity.x = cos(angle) * speed;
+        p.velocity.y = sin(angle) * speed;
         
-        float speed = 10.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 90.0f;
-        p.velocity.x *= speed;
-        p.velocity.y *= speed;
+        p.color = Color(0,0, 255);
         
-        p.color = Color(
-            rand() % 256,
-            rand() % 256,
-            rand() % 256
-        );
+        p.acceleration = 50.0f +( rand() / (float)RAND_MAX ) * 100.0f;
         
-        p.acceleration = 50.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;
-        
-        p.ttl = 1.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 4.0f;
+        p.ttl = 1.0f + (float)( rand()/ (float)RAND_MAX ) * 4.0f;
         
         p.inactive = false;
     }
@@ -49,18 +41,17 @@ void ParticleSystem::Render(Image* framebuffer) {
         
         if (p.inactive) continue;
         
-        int x = static_cast<int>(p.position.x);
-        int y = static_cast<int>(p.position.y);
+        int x = (int)(p.position.x);
+        int y = (int)(p.position.y);
         
-        if (x >= 0 && x < static_cast<int>(framebuffer->width) && 
-            y >= 0 && y < static_cast<int>(framebuffer->height)) {
+        if (x >= 0 && x < (framebuffer->width) && y >= 0 && y < (framebuffer->height)) {
             framebuffer->SetPixel(x, y, p.color);
 
         }
     }
 }
 
-void ParticleSystem::Update(float dt) {
+void ParticleSystem::Update(float dt, int width, int height) {
           
     for (int i = 0; i < MAX_PARTICLES; i++) {
         Particle& p = particles[i];
@@ -74,24 +65,26 @@ void ParticleSystem::Update(float dt) {
         if (p.ttl <= 0) {
             p.inactive = true;
             
-            p.position.x = static_cast<float>(rand() % 800);
-            p.position.y = static_cast<float>(rand() % 600);
+            p.position.x = (float)(rand() % width);
+            p.position.y = (float)(rand() % height);
             
-            float angle = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 2.0f * 3.14159f;
-            p.velocity.x = cos(angle);
-            p.velocity.y = sin(angle);
-            float speed = 10.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 90.0f;
-            p.velocity.x *= speed;
-            p.velocity.y *= speed;
+            float angle = (float)(rand() / (float)RAND_MAX) * 2.0f * 3.14159f;
+            float speed = 10.0f + (float)(rand() / (float)RAND_MAX) * 90.0f;
+            p.velocity.x = cos(angle) * speed;
+            p.velocity.y = sin(angle)* speed;
             
-            p.color = Color(
-                rand() % 256,
-                rand() % 256,
-                rand() % 256
-            );
+            //Particles start blue and become more 'white' over time
+            Color current = p.color;
+            int red = current.r + 50;   
+            int green = current.g + 50; 
+            
+            if (red > 255) red = 255;
+            if (green > 255) green = 255;
+            
+            p.color = Color(red, green, current.b);
             
             // TTL
-            p.ttl = 1.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 4.0f;
+            p.ttl = 1.0f + (float)(rand()/ (float)RAND_MAX) * 4.0f;
             p.inactive = false;
             
             continue;
@@ -102,15 +95,13 @@ void ParticleSystem::Update(float dt) {
         p.position.x += p.velocity.x * dt;
         p.position.y += p.velocity.y * dt;
         
-        const float screenWidth = 800.0f;
-        const float screenHeight = 600.0f;
         
         if (p.position.x < 0) {
             p.position.x = 0;
-            p.velocity.x = -p.velocity.x * 0.8f; // Dampen velocity
+            p.velocity.x = -p.velocity.x * 0.8f; 
         }
-        else if (p.position.x >= screenWidth) {
-            p.position.x = screenWidth - 1;
+        else if (p.position.x >= width) {
+            p.position.x = width - 1;
             p.velocity.x = -p.velocity.x * 0.8f;
         }
         
@@ -118,8 +109,8 @@ void ParticleSystem::Update(float dt) {
             p.position.y = 0;
             p.velocity.y = -p.velocity.y * 0.8f;
         }
-        else if (p.position.y >= screenHeight) {
-            p.position.y = screenHeight - 1;
+        else if (p.position.y >= height) {
+            p.position.y = height - 1;
             p.velocity.y = -p.velocity.y * 0.8f;
         }
     }

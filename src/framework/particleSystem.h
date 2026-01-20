@@ -22,7 +22,7 @@ public:
 
 public:
     ParticleSystem();
-    void Init();
+    void Init(int windowWidth, int windowHeight);
     void Render(Image* framebuffer);
-    void Update(float dt);
+    void Update(float dt, int windowWidth, int windowHeight);
 };
