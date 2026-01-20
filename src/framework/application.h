@@ -9,6 +9,7 @@
 #include "framework.h"
 #include "image.h"
 #include "main/includes.h"
+#include "particlesystem.h"
 
 class Application {
 public:
@@ -87,6 +88,13 @@ public:
   void Init(void);
   void Render(void);
   void Update(float dt);
+
+  //particle system
+  ParticleSystem pS;
+  bool showParticles;
+    
+  // Add initialization method
+  void InitParticleButton();
 
   // Other methods to control the app
   void SetWindowSize(int width, int height) {
