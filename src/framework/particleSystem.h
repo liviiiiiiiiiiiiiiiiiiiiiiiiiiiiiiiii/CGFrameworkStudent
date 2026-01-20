@@ -21,8 +21,6 @@ public:
     Particle particles[MAX_PARTICLES];
 
 public:
-    ParticleSystem();
-    ParticleSystem(Vector2 position, Vector2 velocity, Color color, float acceleration, float ttl, bool inactive);
     void Init();
     void Render(Image* framebuffer);
     void Update(float dt);

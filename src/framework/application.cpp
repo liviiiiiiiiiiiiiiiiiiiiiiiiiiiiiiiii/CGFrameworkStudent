@@ -28,6 +28,10 @@ Application::Application(const char *caption, int width, int height) {
   this->colorMode = BORDER;          // Start in border color mode
 
   this->lastPencilPosition = Vector2(0, 0);
+
+  // Particle system
+  this->showParticles = false;
+
 }
 
 Application::~Application() {
@@ -152,11 +156,21 @@ void Application::InitUI(void) {
 void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
+
+  if(showParticles) {
+      pS.Render(&framebuffer);
+  }
+
+  
   framebuffer.Render();
 }
 
 // Called after render
-void Application::Update(float seconds_elapsed) {}
+void Application::Update(float seconds_elapsed){
+  if(showParticles) {
+      pS.Update(seconds_elapsed);
+  } 
+}
 
 // keyboard press event
 void Application::OnKeyPressed(SDL_KeyboardEvent event) {
