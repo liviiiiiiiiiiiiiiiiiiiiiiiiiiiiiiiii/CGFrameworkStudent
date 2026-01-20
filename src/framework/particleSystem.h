@@ -21,6 +21,7 @@ public:
     Particle particles[MAX_PARTICLES];
 
 public:
+    ParticleSystem();
     void Init();
     void Render(Image* framebuffer);
     void Update(float dt);

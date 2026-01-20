@@ -3,7 +3,11 @@
 #include <ctime>
 #include <cmath>
 
-void ParticleSystem::Init() {
+ParticleSystem::ParticleSystem() {
+    std::srand(static_cast<unsigned int>(time(NULL)));
+}
+
+void ParticleSystem::Init(){
     std::cout << "Initializing particle system with " << MAX_PARTICLES << " particles" << std::endl;
     
     srand(static_cast<unsigned int>(time(NULL)));
@@ -12,7 +16,7 @@ void ParticleSystem::Init() {
     for (int i = 0; i < MAX_PARTICLES; i++) {
         Particle& p = particles[i];
         
-        p.position.x = static_cast<float>(rand() % 800);  
+        p.position.x = static_cast<float>(rand() % 800 );  
         p.position.y = static_cast<float>(rand() % 600);
         
         float angle = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 2.0f * 3.14159f;
@@ -57,6 +61,7 @@ void ParticleSystem::Render(Image* framebuffer) {
 }
 
 void ParticleSystem::Update(float dt) {
+          
     for (int i = 0; i < MAX_PARTICLES; i++) {
         Particle& p = particles[i];
         

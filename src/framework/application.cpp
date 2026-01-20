@@ -30,7 +30,8 @@ Application::Application(const char *caption, int width, int height) {
   this->lastPencilPosition = Vector2(0, 0);
 
   // Particle system
-  this->showParticles = false;
+  this->showParticles = true;
+  this->pS.Init();
 
 }
 
@@ -157,6 +158,7 @@ void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
 
+  showParticles = true;
   if(showParticles) {
       pS.Render(&framebuffer);
   }
@@ -169,6 +171,8 @@ void Application::Render(void) {
 void Application::Update(float seconds_elapsed){
   if(showParticles) {
       pS.Update(seconds_elapsed);
+      framebuffer.Fill(Color::BLACK);
+
   } 
 }
 
