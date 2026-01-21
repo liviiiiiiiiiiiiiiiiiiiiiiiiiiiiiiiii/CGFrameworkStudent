@@ -201,6 +201,7 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
 
   case '1': // Switch to paint mode (disable particles)
     showParticles = false;
+    framebuffer.Fill(Color::BLACK); // Clear particles from screen
     std::cout << "Paint mode activated" << std::endl;
     break;
 
