@@ -25,14 +25,12 @@ Application::Application(const char *caption, int width, int height) {
   this->currentColor = Color::WHITE; // Default drawing color
   this->fillColor = Color::WHITE;    // Default fill color
   this->isFilled = false;            // Shapes not filled by default
-  this->colorMode = BORDER;          // Start in border color mode
 
   this->lastPencilPosition = Vector2(0, 0);
 
   // Particle system
-  this->showParticles = true;
+  this->showParticles = false;
   this->pS.Init(width, height);
-
 }
 
 Application::~Application() {
@@ -157,20 +155,19 @@ void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   InitUI();
 
-  if(showParticles) {
-      pS.Render(&framebuffer);
+  if (showParticles) {
+    pS.Render(&framebuffer);
   }
-  
+
   framebuffer.Render();
 }
 
-void Application::Update(float seconds_elapsed){
-  if(showParticles) {
-      pS.Update(seconds_elapsed, window_width, window_height);
-      framebuffer.Fill(Color::BLACK);
-  } 
+void Application::Update(float seconds_elapsed) {
+  if (showParticles) {
+    pS.Update(seconds_elapsed, window_width, window_height);
+    framebuffer.Fill(Color::BLACK);
+  }
 }
-
 
 // keyboard press event
 void Application::OnKeyPressed(SDL_KeyboardEvent event) {
@@ -202,27 +199,16 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     std::cout << "Fill: " << (isFilled ? "ON" : "OFF") << std::endl;
     break;
 
-  case 'c': // Toggle color mode (border vs fill)
-  case 'C':
-    colorMode = (colorMode == BORDER) ? FILL : BORDER;
-    std::cout << "Color Mode: " << (colorMode == BORDER ? "BORDER" : "FILL")
-              << std::endl;
-    break;
-
-
   case '1': // Switch to paint mode (disable particles)
     showParticles = false;
     std::cout << "Paint mode activated" << std::endl;
     break;
-  
 
   case '2': // Switch to animation mode (enable particles)
     showParticles = true;
     std::cout << "Animation mode activated" << std::endl;
     break;
-
   }
-
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
@@ -249,85 +235,53 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
       return;
     }
 
-    // Color button clicks - sets border or fill color based on current mode
+    // Color button clicks - sets both border and fill color
     if (whiteColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::WHITE;
-        std::cout << "Border Color: WHITE" << std::endl;
-      } else {
-        fillColor = Color::WHITE;
-        std::cout << "Fill Color: WHITE" << std::endl;
-      }
+      currentColor = Color::WHITE;
+      fillColor = Color::WHITE;
+      std::cout << "Color: WHITE" << std::endl;
       return;
     }
     if (blackColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::BLACK;
-        std::cout << "Border Color: BLACK" << std::endl;
-      } else {
-        fillColor = Color::BLACK;
-        std::cout << "Fill Color: BLACK" << std::endl;
-      }
+      currentColor = Color::BLACK;
+      fillColor = Color::BLACK;
+      std::cout << "Color: BLACK" << std::endl;
       return;
     }
     if (redColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::RED;
-        std::cout << "Border Color: RED" << std::endl;
-      } else {
-        fillColor = Color::RED;
-        std::cout << "Fill Color: RED" << std::endl;
-      }
+      currentColor = Color::RED;
+      fillColor = Color::RED;
+      std::cout << "Color: RED" << std::endl;
       return;
     }
     if (greenColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::GREEN;
-        std::cout << "Border Color: GREEN" << std::endl;
-      } else {
-        fillColor = Color::GREEN;
-        std::cout << "Fill Color: GREEN" << std::endl;
-      }
+      currentColor = Color::GREEN;
+      fillColor = Color::GREEN;
+      std::cout << "Color: GREEN" << std::endl;
       return;
     }
     if (blueColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::BLUE;
-        std::cout << "Border Color: BLUE" << std::endl;
-      } else {
-        fillColor = Color::BLUE;
-        std::cout << "Fill Color: BLUE" << std::endl;
-      }
+      currentColor = Color::BLUE;
+      fillColor = Color::BLUE;
+      std::cout << "Color: BLUE" << std::endl;
       return;
     }
     if (yellowColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::YELLOW;
-        std::cout << "Border Color: YELLOW" << std::endl;
-      } else {
-        fillColor = Color::YELLOW;
-        std::cout << "Fill Color: YELLOW" << std::endl;
-      }
+      currentColor = Color::YELLOW;
+      fillColor = Color::YELLOW;
+      std::cout << "Color: YELLOW" << std::endl;
       return;
     }
     if (pinkColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::PURPLE;
-        std::cout << "Border Color: PURPLE" << std::endl;
-      } else {
-        fillColor = Color::PURPLE;
-        std::cout << "Fill Color: PURPLE" << std::endl;
-      }
+      currentColor = Color::PURPLE;
+      fillColor = Color::PURPLE;
+      std::cout << "Color: PURPLE" << std::endl;
       return;
     }
     if (cyanColorButton.IsMouseInside(mouse_position)) {
-      if (colorMode == BORDER) {
-        currentColor = Color::CYAN;
-        std::cout << "Border Color: CYAN" << std::endl;
-      } else {
-        fillColor = Color::CYAN;
-        std::cout << "Fill Color: CYAN" << std::endl;
-      }
+      currentColor = Color::CYAN;
+      fillColor = Color::CYAN;
+      std::cout << "Color: CYAN" << std::endl;
       return;
     }
     if (clearButton.IsMouseInside(mouse_position)) {
@@ -423,6 +377,10 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
         lastPencilPosition = mouse_position;
         isDrawing = true;
         std::cout << "Pencil - Started drawing" << std::endl;
+      } else if (ActiveTool == ButtonType::ERASER) {
+        lastPencilPosition = mouse_position;
+        isDrawing = true;
+        std::cout << "Eraser - Started erasing" << std::endl;
       }
     }
   }
@@ -430,9 +388,15 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
 
 void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
   if (event.button == SDL_BUTTON_LEFT) {
-    if (ActiveTool == ButtonType::PENCIL && isDrawing) {
+    if ((ActiveTool == ButtonType::PENCIL ||
+         ActiveTool == ButtonType::ERASER) &&
+        isDrawing) {
       isDrawing = false;
-      std::cout << "Pencil - Stopped drawing" << std::endl;
+      if (ActiveTool == ButtonType::PENCIL) {
+        std::cout << "Pencil - Stopped drawing" << std::endl;
+      } else {
+        std::cout << "Eraser - Stopped erasing" << std::endl;
+      }
     }
   }
 }
@@ -441,6 +405,11 @@ void Application::OnMouseMove(SDL_MouseButtonEvent event) {
   if (isDrawing && ActiveTool == ButtonType::PENCIL) {
     framebuffer.DrawLineDDA(lastPencilPosition.x, lastPencilPosition.y,
                             mouse_position.x, mouse_position.y, currentColor);
+    lastPencilPosition = mouse_position; // Update for next segment
+  } else if (isDrawing && ActiveTool == ButtonType::ERASER) {
+    // Eraser draws with black color to erase
+    framebuffer.DrawLineDDA(lastPencilPosition.x, lastPencilPosition.y,
+                            mouse_position.x, mouse_position.y, Color::BLACK);
     lastPencilPosition = mouse_position; // Update for next segment
   }
 }

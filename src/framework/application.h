@@ -9,7 +9,7 @@
 #include "framework.h"
 #include "image.h"
 #include "main/includes.h"
-#include "particlesystem.h"
+#include "particleSystem.h"
 
 class Application {
 public:
@@ -79,9 +79,6 @@ public:
   bool isFilled;              // Whether shapes should be filled
   Vector2 lastPencilPosition; // Last position when drawing with the pencil
 
-  enum ColorMode { BORDER, FILL };
-  ColorMode colorMode; // Whether we're setting border or fill color
-
   // UI functions
   void InitUI();
 
@@ -89,10 +86,10 @@ public:
   void Render(void);
   void Update(float dt);
 
-  //particle system
+  // particle system
   ParticleSystem pS;
   bool showParticles;
-    
+
   // Add initialization method
   void InitParticleButton();
 
