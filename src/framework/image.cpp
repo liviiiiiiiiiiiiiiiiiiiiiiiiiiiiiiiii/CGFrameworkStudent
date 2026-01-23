@@ -94,7 +94,8 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color &c) {
   }
 }
 
-void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor, int borderWidth, bool isFilled, const Color &fillColor) {
+void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor,
+                     int borderWidth, bool isFilled, const Color &fillColor) {
   /*First we start by the logic for filling the rectangle*/
   if (isFilled == true) {
     /*Notice how we paint vertically as we are going for each horizontal
@@ -121,7 +122,8 @@ void Image::DrawRect(int x, int y, int w, int h, const Color &borderColor, int b
   }
 }
 
-void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell> &table) {
+void Image::ScanLineDDA(int x0, int y0, int x1, int y1,
+                        std::vector<Cell> &table) {
   // Get the vector that gives us the direction of painting
   int dx = x1 - x0;
   int dy = y1 - y0;
@@ -156,7 +158,8 @@ void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell> &table
 
 void Image::DrawTriangle(const Vector2 &p0, const Vector2 &p1,
                          const Vector2 &p2, const Color &borderColor,
-                         bool isFilled, const Color &fillColor) {
+                         int borderWidth, bool isFilled,
+                         const Color &fillColor) {
 
   if (isFilled) {
     // create table following the widnow size
@@ -178,9 +181,31 @@ void Image::DrawTriangle(const Vector2 &p0, const Vector2 &p1,
       }
     }
   }
-  DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
-  DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
-  DrawLineDDA(p2.x, p2.y, p0.x, p0.y, borderColor);
+
+  // Calculate centroid
+  Vector2 centroid = (p0 + p1 + p2) / 3.0f;
+
+  // Directions from vertices to centroid
+  Vector2 dir0 = (centroid - p0);
+  dir0.normalize();
+  Vector2 dir1 = (centroid - p1);
+  dir1.normalize();
+  Vector2 dir2 = (centroid - p2);
+  dir2.normalize();
+
+  // Draw concentric triangles
+  for (int i = 0; i < borderWidth; i++) {
+    Vector2 p0_shifted = p0 + dir0 * (float)i;
+    Vector2 p1_shifted = p1 + dir1 * (float)i;
+    Vector2 p2_shifted = p2 + dir2 * (float)i;
+
+    DrawLineDDA((int)p0_shifted.x, (int)p0_shifted.y, (int)p1_shifted.x,
+                (int)p1_shifted.y, borderColor);
+    DrawLineDDA((int)p1_shifted.x, (int)p1_shifted.y, (int)p2_shifted.x,
+                (int)p2_shifted.y, borderColor);
+    DrawLineDDA((int)p2_shifted.x, (int)p2_shifted.y, (int)p0_shifted.x,
+                (int)p0_shifted.y, borderColor);
+  }
 }
 
 void Image::DrawImage(const Image &img, int x, int y) {

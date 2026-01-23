@@ -369,8 +369,8 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
           // Third click: draw the triangle
           Vector2 trianglePoint3 = mouse_position;
           framebuffer.DrawTriangle(trianglePoint1, trianglePoint2,
-                                   trianglePoint3, currentColor, isFilled,
-                                   fillColor);
+                                   trianglePoint3, currentColor, borderWidth,
+                                   isFilled, fillColor);
           triangleClickCount = 0; // Reset for next triangle
           std::cout << "Triangle drawn" << std::endl;
         }
