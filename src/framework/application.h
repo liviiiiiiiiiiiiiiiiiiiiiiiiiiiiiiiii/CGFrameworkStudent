@@ -10,6 +10,8 @@
 #include "image.h"
 #include "main/includes.h"
 #include "particleSystem.h"
+#include "entity.h"
+#include "camera.h"
 
 class Application {
 public:

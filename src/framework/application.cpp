@@ -159,7 +159,13 @@ void Application::Render(void) {
     pS.Render(&framebuffer);
   }
 
+  Mesh *mesh = new Mesh();
+  mesh->LoadOBJ("meshes/lee.obj");
+  Entity* e = new Entity();
+
   framebuffer.Render();
+
+
 }
 
 void Application::Update(float seconds_elapsed) {

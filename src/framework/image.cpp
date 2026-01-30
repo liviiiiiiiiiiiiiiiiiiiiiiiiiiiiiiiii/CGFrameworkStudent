@@ -185,7 +185,6 @@ void Image::DrawTriangle(const Vector2 &p0, const Vector2 &p1,
   // Calculate centroid
   Vector2 centroid = (p0 + p1 + p2) / 3.0f;
 
-  // Directions from vertices to centroid
   Vector2 dir0 = (centroid - p0);
   dir0.normalize();
   Vector2 dir1 = (centroid - p1);

@@ -3,14 +3,12 @@
 #include "main/includes.h"
 #include <iostream>
 
-Camera::Camera()
-{
+Camera::Camera(){
 	view_matrix.SetIdentity();
 	SetOrthographic(-1,1,1,-1,-1,1);
 }
 
-Vector3 Camera::GetLocalVector(const Vector3& v)
-{
+Vector3 Camera::GetLocalVector(const Vector3& v){
 	Matrix44 iV = view_matrix;
 	if (iV.Inverse() == false)
 		std::cout << "Matrix Inverse error" << std::endl;
@@ -18,8 +16,7 @@ Vector3 Camera::GetLocalVector(const Vector3& v)
 	return result;
 }
 
-Vector3 Camera::ProjectVector(Vector3 pos)
-{
+Vector3 Camera::ProjectVector(Vector3 pos){
 	Vector4 pos4 = Vector4(pos.x, pos.y, pos.z, 1.0);
 	Vector4 result = viewprojection_matrix * pos4;
 	if (type == ORTHOGRAPHIC)
@@ -28,8 +25,7 @@ Vector3 Camera::ProjectVector(Vector3 pos)
 		return result.GetVector3() / result.w;
 }
 
-void Camera::Rotate(float angle, const Vector3& axis)
-{
+void Camera::Rotate(float angle, const Vector3& axis){
 	Matrix44 R;
 	R.MakeRotationMatrix(angle, axis);
 	Vector3 new_front = R * (center - eye);
@@ -37,16 +33,14 @@ void Camera::Rotate(float angle, const Vector3& axis)
 	UpdateViewMatrix();
 }
 
-void Camera::Move(Vector3 delta)
-{
+void Camera::Move(Vector3 delta){
 	Vector3 localDelta = GetLocalVector(delta);
 	eye = eye - localDelta;
 	center = center - localDelta;
 	UpdateViewMatrix();
 }
 
-void Camera::SetOrthographic(float left, float right, float top, float bottom, float near_plane, float far_plane)
-{
+void Camera::SetOrthographic(float left, float right, float top, float bottom, float near_plane, float far_plane){
 	type = ORTHOGRAPHIC;
 
 	this->left = left;
@@ -59,8 +53,7 @@ void Camera::SetOrthographic(float left, float right, float top, float bottom, f
 	UpdateProjectionMatrix();
 }
 
-void Camera::SetPerspective(float fov, float aspect, float near_plane, float far_plane)
-{
+void Camera::SetPerspective(float fov, float aspect, float near_plane, float far_plane){
 	type = PERSPECTIVE;
 
 	this->fov = fov;
@@ -71,8 +64,7 @@ void Camera::SetPerspective(float fov, float aspect, float near_plane, float far
 	UpdateProjectionMatrix();
 }
 
-void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up)
-{
+void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up){
 	this->eye = eye;
 	this->center = center;
 	this->up = up;
@@ -80,30 +72,50 @@ void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up
 	UpdateViewMatrix();
 }
 
-void Camera::UpdateViewMatrix()
-{
-	// Reset Matrix (Identity)
+void Camera::UpdateViewMatrix(){
 	view_matrix.SetIdentity();
 
-	// Comment this line to create your own projection matrix!
-	SetExampleViewMatrix();
+	Vector3 z_c = (center - eye).Normalize();
+	Vector3 x_c = z_c.Cross(up).Normalize();
+	Vector3 y_c = x_c.Cross(z_c).Normalize();
 
-	// Remember how to fill a Matrix4x4 (check framework slides)
-	// Careful with the order of matrix multiplications, and be sure to use normalized vectors!
+	Matrix44 rotation_matrix;
+	rotation_matrix.SetIdentity();
 	
-	// Create the view matrix rotation
-	// ...
-	// view_matrix.M[3][3] = 1.0;
+	rotation_matrix.m[0] = x_c.x;
+	rotation_matrix.m[1] = x_c.y;
+	rotation_matrix.m[2] = x_c.z;
+	rotation_matrix.m[3] = 0.0f;
+	
+	rotation_matrix.m[4] = y_c.x;
+	rotation_matrix.m[5] = y_c.y;
+	rotation_matrix.m[6] = y_c.z;
+	rotation_matrix.m[7] = 0.0f;
+	
+	rotation_matrix.m[8] = z_c.x;
+	rotation_matrix.m[9] = z_c.y;
+	rotation_matrix.m[10] = z_c.z;
+	rotation_matrix.m[11] = 0.0f;
+	
+	rotation_matrix.m[12] = 0.0f;
+	rotation_matrix.m[13] = 0.0f;
+	rotation_matrix.m[14] = 0.0f;
+	rotation_matrix.m[15] = 1.0f;
 
-	// Translate view matrix
-	// ...
+	Matrix44 translation_matrix;
+	translation_matrix.SetIdentity();
+	
+	translation_matrix.m[12] = -eye.x;
+	translation_matrix.m[13] = -eye.y;
+	translation_matrix.m[14] = -eye.z;
+
+	view_matrix = rotation_matrix * translation_matrix;
 
 	UpdateViewProjectionMatrix();
 }
 
 // Create a projection matrix
-void Camera::UpdateProjectionMatrix()
-{
+void Camera::UpdateProjectionMatrix(){
 	// Reset Matrix (Identity)
 	projection_matrix.SetIdentity();
 
@@ -123,13 +135,11 @@ void Camera::UpdateProjectionMatrix()
 	UpdateViewProjectionMatrix();
 }
 
-void Camera::UpdateViewProjectionMatrix()
-{
+void Camera::UpdateViewProjectionMatrix(){
 	viewprojection_matrix = projection_matrix * view_matrix;
 }
 
-Matrix44 Camera::GetViewProjectionMatrix()
-{
+Matrix44 Camera::GetViewProjectionMatrix(){
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
 
@@ -138,7 +148,6 @@ Matrix44 Camera::GetViewProjectionMatrix()
 
 // The following methods have been created for testing.
 // Do not modify them.
-
 void Camera::SetExampleViewMatrix()
 {
 	glMatrixMode(GL_MODELVIEW);
