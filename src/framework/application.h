@@ -6,12 +6,12 @@
 #pragma once
 
 #include "button.h"
+#include "camera.h"
+#include "entity.h"
 #include "framework.h"
 #include "image.h"
 #include "main/includes.h"
 #include "particleSystem.h"
-#include "entity.h"
-#include "camera.h"
 
 class Application {
 public:
@@ -91,6 +91,9 @@ public:
   // particle system
   ParticleSystem pS;
   bool showParticles;
+
+  Entity *entity;
+  Camera *camera;
 
   // Add initialization method
   void InitParticleButton();

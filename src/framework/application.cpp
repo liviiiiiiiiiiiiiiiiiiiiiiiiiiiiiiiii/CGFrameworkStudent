@@ -124,6 +124,22 @@ void Application::Init(void) {
   Image *loadImg = new Image();
   loadImg->LoadPNG("images/load.png");
   loadButton = Button(loadImg, 575, 5, ButtonType::LoadImageBtn);
+
+  // Init Camera
+  camera = new Camera();
+  camera->LookAt(Vector3(10.f, 0.f, 3.f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.1f,
+                         100.f); // Degrees for gluPerspective
+
+  // Init Entity
+  entity = new Entity();
+  Mesh *mesh = new Mesh();
+  mesh->LoadOBJ("meshes/lee.obj");
+  entity->SetMesh(mesh);
+
+  Matrix44 model;
+  model.SetIdentity(); // Identity for now
+  entity->SetModelMatrix(model);
 }
 
 // Init UI
@@ -153,19 +169,22 @@ void Application::InitUI(void) {
 
 void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
+  // Clear the framebuffer first (black or dark gray)
+  framebuffer.Fill(Color(40, 40, 40));
+
+  // Render Entity
+  if (entity) {
+    entity->Render(&framebuffer, camera, Color::WHITE);
+  }
+
+  // Draw UI on top
   InitUI();
 
   if (showParticles) {
     pS.Render(&framebuffer);
   }
 
-  Mesh *mesh = new Mesh();
-  mesh->LoadOBJ("meshes/lee.obj");
-  Entity* e = new Entity();
-
   framebuffer.Render();
-
-
 }
 
 void Application::Update(float seconds_elapsed) {

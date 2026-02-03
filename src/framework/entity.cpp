@@ -33,15 +33,16 @@ void Entity::Render(Image *framebuffer, Camera *camera, const Color &c) {
 
     if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) ||
         !isInsideClipSpace(c3)) {
-        return;
+      return;
     }
-    // clip to screen
-    int sx1 = (c1.x) * framebuffer->width;
-    int sy1 = (c1.y) * framebuffer->height;
-    int sx2 = (c2.x) * framebuffer->width;
-    int sy2 = (c2.y) * framebuffer->height;
-    int sx3 = (c3.x) * framebuffer->width;
-    int sy3 = (c3.y) * framebuffer->height;
+    // clip to screen: map from [-1,1] to [0, width/height]
+    // Origin (0,0) is at bottom-left corner
+    int sx1 = (c1.x + 1.0f) * 0.5f * framebuffer->width;
+    int sy1 = (c1.y + 1.0f) * 0.5f * framebuffer->height;
+    int sx2 = (c2.x + 1.0f) * 0.5f * framebuffer->width;
+    int sy2 = (c2.y + 1.0f) * 0.5f * framebuffer->height;
+    int sx3 = (c3.x + 1.0f) * 0.5f * framebuffer->width;
+    int sy3 = (c3.y + 1.0f) * 0.5f * framebuffer->height;
 
     // create the vectopr 2 to draw the triangle directly
     Vector2 p1(sx1, sy1);
