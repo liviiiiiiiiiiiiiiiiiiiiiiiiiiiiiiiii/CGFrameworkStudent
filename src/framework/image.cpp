@@ -192,8 +192,18 @@ void Image::DrawTriangle(const Vector2 &p0, const Vector2 &p1,
   Vector2 dir2 = (centroid - p2);
   dir2.normalize();
 
+  Vector2 p0_shifted = p0;
+  Vector2 p1_shifted = p1;
+  Vector2 p2_shifted = p2;
+
+  DrawLineDDA((int)p0_shifted.x, (int)p0_shifted.y, (int)p1_shifted.x,
+              (int)p1_shifted.y, borderColor);
+  DrawLineDDA((int)p1_shifted.x, (int)p1_shifted.y, (int)p2_shifted.x,
+              (int)p2_shifted.y, borderColor);
+  DrawLineDDA((int)p2_shifted.x, (int)p2_shifted.y, (int)p0_shifted.x,
+              (int)p0_shifted.y, borderColor);
   // Draw concentric triangles
-  for (int i = 0; i < borderWidth; i++) {
+  for (int i = 1; i < borderWidth; i++) {
     Vector2 p0_shifted = p0 + dir0 * (float)i;
     Vector2 p1_shifted = p1 + dir1 * (float)i;
     Vector2 p2_shifted = p2 + dir2 * (float)i;

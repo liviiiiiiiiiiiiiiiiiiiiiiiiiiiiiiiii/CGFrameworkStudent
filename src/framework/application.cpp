@@ -127,8 +127,8 @@ void Application::Init(void) {
 
   // Init Camera
   camera = new Camera();
-  camera->LookAt(Vector3(10.f, 0.f, 3.f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.1f,
+  camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
                          100.f); // Degrees for gluPerspective
 
   // Init Entity
@@ -178,7 +178,7 @@ void Application::Render(void) {
   }
 
   // Draw UI on top
-  InitUI();
+  //InitUI();
 
   if (showParticles) {
     pS.Render(&framebuffer);

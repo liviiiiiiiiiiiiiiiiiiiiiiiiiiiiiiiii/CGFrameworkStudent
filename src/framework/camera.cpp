@@ -82,6 +82,9 @@ void Camera::LookAt(const Vector3 &eye, const Vector3 &center,
 }
 
 void Camera::UpdateViewMatrix() {
+	//view_matrix.SetIdentity();
+	//SetExampleViewMatrix();
+	
   // 1. Calcular vectors de la càmera (Ortonormals)
   Vector3 forward = (center - eye).Normalize();
   Vector3 right = forward.Cross(up).Normalize();
@@ -119,17 +122,17 @@ void Camera::UpdateViewMatrix() {
 
   // 4. Combinar: Primer traslladem, després rotem
   view_matrix = R * T;
-
+ 
   UpdateViewProjectionMatrix();
 }
 
 // Create a projection matrix
 void Camera::UpdateProjectionMatrix() {
   // Reset Matrix (Identity)
-  projection_matrix.SetIdentity();
+  //projection_matrix.SetIdentity();
 
   // Comment this line to create your own projection matrix!
-  // SetExampleProjectionMatrix();
+  //SetExampleProjectionMatrix();
 
   // Remember how to fill a Matrix4x4 (check framework slides)
 

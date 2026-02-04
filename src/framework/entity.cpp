@@ -48,8 +48,13 @@ void Entity::Render(Image *framebuffer, Camera *camera, const Color &c) {
     Vector2 p1(sx1, sy1);
     Vector2 p2(sx2, sy2);
     Vector2 p3(sx3, sy3);
-
+    // framebuffer->DrawLineDDA(p1.x,p1.y,p2.x,p2.y,Color::CYAN);
+    // framebuffer->DrawLineDDA(p2.x,p2.y,p3.x,p3.y,Color::CYAN);
+    // framebuffer->DrawLineDDA(p1.x,p1.y,p3.x,p3.y,Color::CYAN);
     framebuffer->DrawTriangle(p1, p2, p3, c, 1, false, c);
+    // framebuffer->SetPixel(p1.x +20,p1.y+20,Color::CYAN);
+    // framebuffer->SetPixel(p2.x+20,p2.y+20,Color::CYAN);
+    // framebuffer->SetPixel(p3.x+20,p3.y+20,Color::CYAN);
   }
 }
 
