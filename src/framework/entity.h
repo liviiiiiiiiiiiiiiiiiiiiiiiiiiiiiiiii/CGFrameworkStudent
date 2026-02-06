@@ -14,6 +14,14 @@ public:
   // Model matrix for transformations (scale, rotation, translation)
   Matrix44 model;
 
+  //Update variables for animation
+  Vector3 base_position;
+  Vector3 rot_axis;
+  float rotation_speed;
+  float scale;
+  float time_acc;
+  float phase;
+
   // Constructor and destructor
   Entity();
   ~Entity();
@@ -26,6 +34,8 @@ public:
   Mesh *GetMesh() const;
   Matrix44 GetModelMatrix() const;
   void Render(Image *framebuffer, Camera *camera, const Color &c);
+
+  void Update(float seconds_elapsed);
 };
 
 #endif // ENTITY_H

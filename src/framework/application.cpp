@@ -2,6 +2,10 @@
 #include "mesh.h"
 #include "shader.h"
 #include "utils.h"
+#include "entity.h"
+#include <vector>
+
+
 
 Application::Application(const char *caption, int width, int height) {
   this->window = createWindow(caption, width, height);
@@ -31,6 +35,7 @@ Application::Application(const char *caption, int width, int height) {
   // Particle system
   this->showParticles = false;
   this->pS.Init(width, height);
+  this->lab_mode = 2; // Start with one entity mode
 }
 
 Application::~Application() {
@@ -131,20 +136,35 @@ void Application::Init(void) {
   camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
                          100.f); // Degrees for gluPerspective
 
-  // Init Entity
-  entity = new Entity();
-  Mesh *mesh = new Mesh();
-  mesh->LoadOBJ("meshes/lee.obj");
-  entity->SetMesh(mesh);
+    
+  shared_mesh = new Mesh();
+  shared_mesh->LoadOBJ("meshes/lee.obj");
 
+  entities.clear();
+
+  for (int i = 0; i < 3; ++i) {
+    Entity* e = new Entity();
+    e->SetMesh(shared_mesh);
+
+    e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f); 
+    e->rot_axis = Vector3::UP;
+    e->rotation_speed = 0.8f + 0.4f * i; 
+    e->scale = 0.6f + 0.2f * i;          
+    e->phase = i * 1.0f;                
+
+    e->Update(0.0f); 
+    entities.push_back(e);
+  }
+  entity = new Entity();
+  entity->SetMesh(shared_mesh);
   Matrix44 model;
-  model.SetIdentity(); // Identity for now
+  model.SetIdentity();
   entity->SetModelMatrix(model);
 }
 
 // Init UI
 void Application::InitUI(void) {
-  // Draw buttons
+  // Draw buttons 
   lineButton.Draw(framebuffer);
   rectangleButton.Draw(framebuffer);
   triangleButton.Draw(framebuffer);
@@ -173,7 +193,7 @@ void Application::Render(void) {
   framebuffer.Fill(Color(40, 40, 40));
 
   // Render Entity
-  if (entity) {
+  if (lab_mode == 1) {
     entity->Render(&framebuffer, camera, Color::WHITE);
   }
 
@@ -184,6 +204,11 @@ void Application::Render(void) {
     pS.Render(&framebuffer);
   }
 
+  else if (lab_mode == 2) {
+    if (entities.size() > 0) entities[0]->Render(&framebuffer, camera, Color::BLUE);
+    if (entities.size() > 1) entities[1]->Render(&framebuffer, camera, Color::WHITE);
+    if (entities.size() > 2) entities[2]->Render(&framebuffer, camera, Color::RED);
+  }
   framebuffer.Render();
 }
 
@@ -192,6 +217,10 @@ void Application::Update(float seconds_elapsed) {
     pS.Update(seconds_elapsed, window_width, window_height);
     framebuffer.Fill(Color::BLACK);
   }
+  if (lab_mode == 2) {
+  for (Entity* e : entities) {
+    e->Update(seconds_elapsed);
+  }}
 }
 
 // keyboard press event
@@ -202,42 +231,59 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     exit(0);
     break; // ESC key, kill the app
 
-  case '=': // = key (also + with shift)
-  case '+': // + key
-    borderWidth++;
-    if (borderWidth > 20)
-      borderWidth = 20; // Max limit
-    std::cout << "Border width: " << borderWidth << std::endl;
-    break;
+  case '1':
+    lab_mode = 1; // SINGLE ENTITY
+  break;
 
-  case '-': // - key
-  case '_': // _ key
-    borderWidth--;
-    if (borderWidth < 1)
-      borderWidth = 1; // Min limit
-    std::cout << "Border width: " << borderWidth << std::endl;
-    break;
+  case '2':
+          lab_mode = 2; // MULTIPLE ANIMATED ENTITIES
+  break;
 
-  case 'f': // Toggle fill
-  case 'F':
-    isFilled = !isFilled;
-    std::cout << "Fill: " << (isFilled ? "ON" : "OFF") << std::endl;
-    break;
+  case 'N': case 'n':
+    current_prop = PROP_NEAR;
+  break;
 
-  case '1': // Switch to paint mode (disable particles)
-    showParticles = false;
-    framebuffer.Fill(Color::BLACK); // Clear particles from screen
-    std::cout << "Paint mode activated" << std::endl;
-    break;
+  case 'F': case 'f':
+    current_prop = PROP_FAR;
+  break;
 
-  case '2': // Switch to animation mode (enable particles)
-    showParticles = true;
-    std::cout << "Animation mode activated" << std::endl;
+  case 'V': case 'v':
+    current_prop = PROP_FOV;
+  break;
+
+  case '+':{
+  if(!camera) break;
+
+  if(current_prop == PROP_NEAR) camera->near_plane += 0.01f;
+  else if(current_prop == PROP_FAR) camera->far_plane += 0.1f;
+  else if(current_prop == PROP_FOV) camera->fov += 1.0f;
+
+  if(camera->near_plane < 0.001f) camera->near_plane = 0.001f;
+  if(camera->far_plane <= camera->near_plane + 0.01f) camera->far_plane = camera->near_plane + 0.01f;
+  if(camera->fov < 10.0f) camera->fov = 10.0f;
+  if(camera->fov > 170.0f) camera->fov = 170.0f;
+
+  camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
     break;
   }
-}
 
-void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
+  case '-':{
+    if(!camera) break;
+
+    if(current_prop == PROP_NEAR) camera->near_plane -= 0.01f;
+    else if(current_prop == PROP_FAR) camera->far_plane -= 0.1f;
+    else if(current_prop == PROP_FOV) camera->fov -= 1.0f;
+
+    if(camera->near_plane < 0.001f) camera->near_plane = 0.001f;
+    if(camera->far_plane <= camera->near_plane + 0.01f)camera->far_plane = camera->near_plane + 0.01f;
+    if(camera->fov < 10.0f) camera->fov = 10.0f;
+    if(camera->fov > 170.0f) camera->fov = 170.0f;
+
+    camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
+    break;
+}}}
+
+void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){
   if (event.button == SDL_BUTTON_LEFT) {
     // check click on buttons
     if (lineButton.IsMouseInside(mouse_position)) {

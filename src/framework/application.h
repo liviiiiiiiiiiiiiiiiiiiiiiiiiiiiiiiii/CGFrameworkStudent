@@ -94,6 +94,12 @@ public:
 
   Entity *entity;
   Camera *camera;
+  int lab_mode = 0; // 0: no entity, 1: single entity, 2: multiple animated entities
+  std::vector<Entity*> entities;
+  Mesh* shared_mesh = nullptr;
+
+  enum CameraProp{ PROP_NONE, PROP_NEAR, PROP_FAR, PROP_FOV };
+  CameraProp current_prop = PROP_NONE;
 
   // Add initialization method
   void InitParticleButton();
@@ -104,6 +110,8 @@ public:
     this->window_width = width;
     this->window_height = height;
     this->framebuffer.Resize(width, height);
+    if(camera)
+    camera->SetPerspective(camera->fov, width / (float)height, camera->near_plane, camera->far_plane);
   }
 
   Vector2 GetWindowSize() {

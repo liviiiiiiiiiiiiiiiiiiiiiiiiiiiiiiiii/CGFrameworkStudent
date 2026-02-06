@@ -82,7 +82,6 @@ void Camera::LookAt(const Vector3 &eye, const Vector3 &center,
 }
 
 void Camera::UpdateViewMatrix() {
-	//view_matrix.SetIdentity();
 	//SetExampleViewMatrix();
 	
   // 1. Calcular vectors de la càmera (Ortonormals)
@@ -129,7 +128,7 @@ void Camera::UpdateViewMatrix() {
 // Create a projection matrix
 void Camera::UpdateProjectionMatrix() {
   // Reset Matrix (Identity)
-  //projection_matrix.SetIdentity();
+  projection_matrix.SetIdentity();
 
   // Comment this line to create your own projection matrix!
   //SetExampleProjectionMatrix();
@@ -166,9 +165,22 @@ void Camera::UpdateProjectionMatrix() {
     projection_matrix.m[14] =
         (2.0f * far_plane * near_plane) / (near_plane - far_plane);
     projection_matrix.m[15] = 0.0f;
+
   } else if (type == ORTHOGRAPHIC) {
-    // ...
-  }
+    float rl = right - left;
+    float tb = top - bottom;
+    float fn = far_plane - near_plane;
+
+    projection_matrix.m[0]  =  2.0f / rl;
+    projection_matrix.m[5]  =  2.0f / tb;
+    projection_matrix.m[10] = -2.0f / fn;
+
+    projection_matrix.m[12] = -(right + left) / rl;
+    projection_matrix.m[13] = -(top + bottom) / tb;
+    projection_matrix.m[14] = -(far_plane + near_plane) / fn;
+
+    projection_matrix.m[15] = 1.0f;
+ }
 
   UpdateViewProjectionMatrix();
 }
