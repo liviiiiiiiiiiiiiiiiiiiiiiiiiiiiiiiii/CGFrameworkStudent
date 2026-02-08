@@ -33,9 +33,9 @@ public:
   // Getters
   Mesh *GetMesh() const;
   Matrix44 GetModelMatrix() const;
-  void Render(Image *framebuffer, Camera *camera, const Color &c);
-
+  void Render(Image* framebuffer, Camera* camera, FloatImage* zbuffer, const Color& c);
   void Update(float seconds_elapsed);
+  
 };
 
 #endif // ENTITY_H

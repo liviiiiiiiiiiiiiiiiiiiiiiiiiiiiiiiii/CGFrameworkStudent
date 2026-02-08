@@ -26,50 +26,38 @@ bool isInsideClipSpace(const Vector3 &v) {
           v.z <= 1);
 }
 
-void Entity::Render(Image *framebuffer, Camera *camera, const Color &c) {
-  if (!mesh)
-    return;
-  const std::vector<Vector3> &vertices = mesh->GetVertices();
-  for (int i = 0; i < vertices.size(); i += 3) {
-    Vector3 v = vertices[i];
-    Vector3 v2 = vertices[i + 1];
-    Vector3 v3 = vertices[i + 2];
-    // local to world
-    Vector3 W1 = model * v;
-    Vector3 W2 = model * v2;
-    Vector3 W3 = model * v3;
-    // world to view to clip
-    Vector3 c1 = camera->ProjectVector(W1);
-    Vector3 c2 = camera->ProjectVector(W2);
-    Vector3 c3 = camera->ProjectVector(W3);
+void Entity::Render(Image* framebuffer, Camera* camera, FloatImage* zbuffer, const Color& c)
+{
+    if (!mesh || !framebuffer || !camera || !zbuffer) return;
 
-    if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) ||
-        !isInsideClipSpace(c3)) {
-      continue; // Skip triangles that are outside the clip space
+    const std::vector<Vector3>& vertices = mesh->GetVertices();
+
+    for (int i = 0; i < (int)vertices.size(); i += 3)
+    {
+        Vector3 W1 = model * vertices[i];
+        Vector3 W2 = model * vertices[i + 1];
+        Vector3 W3 = model * vertices[i + 2];
+
+        Vector3 c1 = camera->ProjectVector(W1);
+        Vector3 c2 = camera->ProjectVector(W2);
+        Vector3 c3 = camera->ProjectVector(W3);
+
+        if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) || !isInsideClipSpace(c3))
+            continue;
+
+        int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
+        int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+        int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
+        int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+        int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
+        int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+
+        Vector3 sp0((float)sx1, (float)sy1, c1.z);
+        Vector3 sp1((float)sx2, (float)sy2, c2.z);
+        Vector3 sp2((float)sx3, (float)sy3, c3.z);
+
+        framebuffer->DrawTriangleInterpolated(sp0, sp1, sp2, Color::RED, Color::GREEN, Color::BLUE,zbuffer);
     }
-    // clip to screen: map from [-1,1] to [0, width/height]
-    // Origin (0,0) is at bottom-left corner
-    int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width -1);
-    int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height -1);
-    int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width -1);
-    int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height -1);
-    int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width -1);
-    int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height -1);
-
-    // create the vectopr 2 to draw the triangle directly
-    Vector2 p1(sx1, sy1);
-    Vector2 p2(sx2, sy2);
-    Vector2 p3(sx3, sy3);
-    // framebuffer->DrawLineDDA(p1.x,p1.y,p2.x,p2.y,Color::CYAN);
-    // framebuffer->DrawLineDDA(p2.x,p2.y,p3.x,p3.y,Color::CYAN);
-    // framebuffer->DrawLineDDA(p1.x,p1.y,p3.x,p3.y,Color::CYAN);
-    framebuffer->DrawLineDDA(p1.x, p1.y, p2.x, p2.y, c);
-    framebuffer->DrawLineDDA(p2.x, p2.y, p3.x, p3.y, c);
-    framebuffer->DrawLineDDA(p3.x, p3.y, p1.x, p1.y, c);
-    // framebuffer->SetPixel(p1.x +20,p1.y+20,Color::CYAN);
-    // framebuffer->SetPixel(p2.x+20,p2.y+20,Color::CYAN);
-    // framebuffer->SetPixel(p3.x+20,p3.y+20,Color::CYAN);
-  }
 }
 
 void Entity::SetMesh(Mesh *m) { mesh = m; }
@@ -95,4 +83,6 @@ void Entity::Update(float seconds_elapsed) {
   S.MakeScaleMatrix(scale, scale, scale);
 
   model = T * R * S;
+
+  
 }

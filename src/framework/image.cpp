@@ -481,10 +481,62 @@ bool Image::SaveTGA(const char *filename) {
   return true;
 }
 
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2,const Color& c0, const Color& c1, const Color& c2,FloatImage* zbuffer)
+{
+    Vector2 a(p0.x, p0.y);
+    Vector2 b(p1.x, p1.y);
+    Vector2 c(p2.x, p2.y);
+
+    float denom = (b - a).Perpdot(c - a);
+    if (fabs(denom) < 1e-8f) return; // degenerate triangle
+
+    int minx = (int)floorf(std::min(a.x, std::min(b.x, c.x)));
+    int maxx = (int)ceilf (std::max(a.x, std::max(b.x, c.x)));
+    int miny = (int)floorf(std::min(a.y, std::min(b.y, c.y)));
+    int maxy = (int)ceilf (std::max(a.y, std::max(b.y, c.y)));
+
+    minx = std::max(minx, 0);
+    miny = std::max(miny, 0);
+    maxx = std::min(maxx, (int)width - 1);
+    maxy = std::min(maxy, (int)height - 1);
+
+    const float eps = -1e-6f;
+
+    for (int y = miny; y <= maxy; ++y)
+    {
+        for (int x = minx; x <= maxx; ++x)
+        {
+            Vector2 p((float)x + 0.5f, (float)y + 0.5f);
+
+            float w0 = (b - p).Perpdot(c - p) / denom;
+            float w1 = (c - p).Perpdot(a - p) / denom;
+            float w2 = (a - p).Perpdot(b - p) / denom;
+
+            if (w0 < eps || w1 < eps || w2 < eps) continue;
+
+            // Z interpolation
+            float z = w0 * p0.z + w1 * p1.z + w2 * p2.z;
+
+            // Z-test (smaller z = closer, with your current pipeline)
+            float oldz = zbuffer->GetPixel(x, y);
+            if (z >= oldz) continue;
+
+            zbuffer->SetPixel(x, y, z);
+
+            Color out;
+            out.Set(
+                c0.r * w0 + c1.r * w1 + c2.r * w2,
+                c0.g * w0 + c1.g * w1 + c2.g * w2,
+                c0.b * w0 + c1.b * w1 + c2.b * w2
+            );
+
+            SetPixel(x, y, out);
+        }
+    }
+}
+
 #ifndef IGNORE_LAMBDAS
 
-// You can apply and algorithm for two images and store the result in the first
-// one ForEachPixel( img, img2, [](Color a, Color b) { return a + b; } );
 template <typename F> void ForEachPixel(Image &img, const Image &img2, F f) {
   for (unsigned int pos = 0; pos < img.width * img.height; ++pos)
     img.pixels[pos] = f(img.pixels[pos], img2.pixels[pos]);
@@ -546,3 +598,4 @@ void FloatImage::Resize(unsigned int width, unsigned int height) {
   this->height = height;
   pixels = new_pixels;
 }
+

@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "utils.h"
+#include "image.h" 
 #include <iostream>
 #include <vector>
 
@@ -19,6 +20,8 @@ Application::Application(const char *caption, int width, int height) {
   this->keystate = SDL_GetKeyboardState(nullptr);
 
   this->framebuffer.Resize(w, h);
+  this->zbuffer.Resize(w, h);
+  this->zbuffer.Fill(1e9f);
 
   // Initialize drawing state
   this->ActiveTool = ButtonType::LINE;
@@ -26,7 +29,7 @@ Application::Application(const char *caption, int width, int height) {
   this->borderWidth = 2;             // Default border width
   this->triangleClickCount = 0;      // No triangle points yet
   this->currentColor = Color::WHITE; // Default drawing color
-  this->fillColor = Color::WHITE;    // Default fill color
+  this->fillColor = Color::WHITE;    // D efault fill color
   this->isFilled = false;            // Shapes not filled by default
 
   this->lastPencilPosition = Vector2(0, 0);
@@ -189,11 +192,11 @@ void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   // Clear the framebuffer first (black or dark gray)
   framebuffer.Fill(Color(40, 40, 40));
+  zbuffer.Fill(1e9f);
 
   // Render Entity
   if (lab_mode == 1) {
-    entity->Render(&framebuffer, camera, Color::WHITE);
-  }
+    entity->Render(&framebuffer, camera, &zbuffer, Color::BLUE);  }
 
   // Draw UI on top
   // InitUI();
@@ -203,12 +206,9 @@ void Application::Render(void) {
   }
 
   else if (lab_mode == 2) {
-    if (entities.size() > 0)
-      entities[0]->Render(&framebuffer, camera, Color::BLUE);
-    if (entities.size() > 1)
-      entities[1]->Render(&framebuffer, camera, Color::WHITE);
-    if (entities.size() > 2)
-      entities[2]->Render(&framebuffer, camera, Color::RED);
+    if (entities.size() > 0) entities[0]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
+    if (entities.size() > 1) entities[1]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
+    if (entities.size() > 2) entities[2]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
   }
   framebuffer.Render();
 }

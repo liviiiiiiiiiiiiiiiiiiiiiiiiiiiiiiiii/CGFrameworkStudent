@@ -101,6 +101,8 @@ public:
   enum CameraProp{ PROP_NONE, PROP_NEAR, PROP_FAR, PROP_FOV };
   CameraProp current_prop = PROP_NONE;
 
+  FloatImage zbuffer;
+  
   // Add initialization method
   void InitParticleButton();
 
