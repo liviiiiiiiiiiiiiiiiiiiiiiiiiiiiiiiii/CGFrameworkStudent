@@ -116,7 +116,20 @@ public:
   bool LoadTGA(const char *filename, bool flip_y = false);
   bool SaveTGA(const char *filename);
 
-  void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* zbuffer);
+  // Struct to safely pass triangle information
+  struct sTriangleInfo {
+    Vector3 p0, p1, p2;
+    Vector2 uv0, uv1, uv2;
+    Color c0, c1, c2;
+    Image *texture = nullptr;
+  };
+
+  void DrawTriangleInterpolated(const Vector3 &p0, const Vector3 &p1,
+                                const Vector3 &p2, const Color &c0,
+                                const Color &c1, const Color &c2,
+                                FloatImage *zbuffer);
+  void DrawTriangleInterpolated(const sTriangleInfo &triangle,
+                                FloatImage *zbuffer);
 // Used to easy code
 #ifndef IGNORE_LAMBDAS
 

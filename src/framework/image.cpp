@@ -481,58 +481,98 @@ bool Image::SaveTGA(const char *filename) {
   return true;
 }
 
-void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2,const Color& c0, const Color& c1, const Color& c2,FloatImage* zbuffer)
-{
-    Vector2 a(p0.x, p0.y);
-    Vector2 b(p1.x, p1.y);
-    Vector2 c(p2.x, p2.y);
+// Wrapper for the new struct-based function
+void Image::DrawTriangleInterpolated(const Vector3 &p0, const Vector3 &p1,
+                                     const Vector3 &p2, const Color &c0,
+                                     const Color &c1, const Color &c2,
+                                     FloatImage *zbuffer) {
+  sTriangleInfo triangle;
+  triangle.p0 = p0;
+  triangle.p1 = p1;
+  triangle.p2 = p2;
+  triangle.c0 = c0;
+  triangle.c1 = c1;
+  triangle.c2 = c2;
+  triangle.uv0 = Vector2(0, 0); // Default UVs
+  triangle.uv1 = Vector2(0, 0);
+  triangle.uv2 = Vector2(0, 0);
+  triangle.texture = nullptr;
 
-    float denom = (b - a).Perpdot(c - a);
-    if (fabs(denom) < 1e-8f) return; // degenerate triangle
+  DrawTriangleInterpolated(triangle, zbuffer);
+}
 
-    int minx = (int)floorf(std::min(a.x, std::min(b.x, c.x)));
-    int maxx = (int)ceilf (std::max(a.x, std::max(b.x, c.x)));
-    int miny = (int)floorf(std::min(a.y, std::min(b.y, c.y)));
-    int maxy = (int)ceilf (std::max(a.y, std::max(b.y, c.y)));
+void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
+                                     FloatImage *zbuffer) {
+  // 1. Preparation: Create 2D vectors for screen space calculations
+  // We only need x and y for the barycentric coordinates, Z is interpolated
+  // later
+  Vector2 a(triangle.p0.x, triangle.p0.y);
+  Vector2 b(triangle.p1.x, triangle.p1.y);
+  Vector2 c(triangle.p2.x, triangle.p2.y);
 
-    minx = std::max(minx, 0);
-    miny = std::max(miny, 0);
-    maxx = std::min(maxx, (int)width - 1);
-    maxy = std::min(maxy, (int)height - 1);
+  // Calculate the signed area of the entire triangle (multiplied by 2)
+  // This 'denom' is the divisor used to normalize the barycentric weights
+  float denom = (b - a).Perpdot(c - a);
+  if (fabs(denom) < 1e-8f)
+    return; // Degenerate triangle (area is zero), skip drawing
 
-    const float eps = -1e-6f;
+  // 2. Bounding Box Optimization
+  // Instead of checking every pixel on screen, we only iterate over the pixels
+  // inside the smallest rectangle that contains the triangle
+  int minx = (int)floorf(std::min(a.x, std::min(b.x, c.x)));
+  int maxx = (int)ceilf(std::max(a.x, std::max(b.x, c.x)));
+  int miny = (int)floorf(std::min(a.y, std::min(b.y, c.y)));
+  int maxy = (int)ceilf(std::max(a.y, std::max(b.y, c.y)));
 
-    for (int y = miny; y <= maxy; ++y)
-    {
-        for (int x = minx; x <= maxx; ++x)
-        {
-            Vector2 p((float)x + 0.5f, (float)y + 0.5f);
+  // Clamp the bounding box to the image dimensions to avoid segfaults
+  minx = std::max(minx, 0);
+  miny = std::max(miny, 0);
+  maxx = std::min(maxx, (int)width - 1);
+  maxy = std::min(maxy, (int)height - 1);
 
-            float w0 = (b - p).Perpdot(c - p) / denom;
-            float w1 = (c - p).Perpdot(a - p) / denom;
-            float w2 = (a - p).Perpdot(b - p) / denom;
+  const float eps = -1e-6f; // Epsilon for float inaccuracies
 
-            if (w0 < eps || w1 < eps || w2 < eps) continue;
+  // 3. Loop through pixels in the Bounding Box
+  for (int y = miny; y <= maxy; ++y) {
+    for (int x = minx; x <= maxx; ++x) {
+      // Center of the pixel we are testing
+      Vector2 p((float)x + 0.5f, (float)y + 0.5f);
 
-            // Z interpolation
-            float z = w0 * p0.z + w1 * p1.z + w2 * p2.z;
+      // Calculate Barycentric Weights (w0, w1, w2)
+      // These represent the area of the sub-triangles formed by point P
+      // and the vertices. They act as "influence percentages" of each vertex.
+      float w0 = (b - p).Perpdot(c - p) / denom;
+      float w1 = (c - p).Perpdot(a - p) / denom;
+      float w2 = (a - p).Perpdot(b - p) / denom;
 
-            // Z-test (smaller z = closer, with your current pipeline)
-            float oldz = zbuffer->GetPixel(x, y);
-            if (z >= oldz) continue;
+      // 4. Check if point is inside triangle
+      // If any weight is negative, the point is outside.
+      if (w0 < eps || w1 < eps || w2 < eps)
+        continue;
 
-            zbuffer->SetPixel(x, y, z);
+      // 5. Z-Buffer Test (Depth Testing)
+      // Interpolate Z value using the weights: Z_pixel = w0*Z0 + w1*Z1 + w2*Z2
+      float z = w0 * triangle.p0.z + w1 * triangle.p1.z + w2 * triangle.p2.z;
 
-            Color out;
-            out.Set(
-                c0.r * w0 + c1.r * w1 + c2.r * w2,
-                c0.g * w0 + c1.g * w1 + c2.g * w2,
-                c0.b * w0 + c1.b * w1 + c2.b * w2
-            );
+      // Check against existing depth in buffer.
+      // If new Z is >= stored Z, it means this pixel is behind something else.
+      float oldz = zbuffer->GetPixel(x, y);
+      if (z >= oldz)
+        continue;
 
-            SetPixel(x, y, out);
-        }
+      // Update Z-buffer with new closest depth
+      zbuffer->SetPixel(x, y, z);
+
+      // 6. Color Interpolation
+      // Mix the 3 vertex colors using the same weights to get the pixel color
+      Color out;
+      out.Set(triangle.c0.r * w0 + triangle.c1.r * w1 + triangle.c2.r * w2,
+              triangle.c0.g * w0 + triangle.c1.g * w1 + triangle.c2.g * w2,
+              triangle.c0.b * w0 + triangle.c1.b * w1 + triangle.c2.b * w2);
+
+      SetPixel(x, y, out);
     }
+  }
 }
 
 #ifndef IGNORE_LAMBDAS
@@ -598,4 +638,3 @@ void FloatImage::Resize(unsigned int width, unsigned int height) {
   this->height = height;
   pixels = new_pixels;
 }
-

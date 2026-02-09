@@ -1,9 +1,9 @@
 #include "entity.h"
-#include "mesh.h"
-#include "image.h"
 #include "camera.h"
+#include "image.h"
+#include "mesh.h"
 
-#include <cmath> 
+#include <cmath>
 
 Entity::Entity() {
   mesh = nullptr;
@@ -26,38 +26,54 @@ bool isInsideClipSpace(const Vector3 &v) {
           v.z <= 1);
 }
 
-void Entity::Render(Image* framebuffer, Camera* camera, FloatImage* zbuffer, const Color& c)
-{
-    if (!mesh || !framebuffer || !camera || !zbuffer) return;
+void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
+                    const Color &c) {
+  if (!mesh || !framebuffer || !camera || !zbuffer)
+    return;
 
-    const std::vector<Vector3>& vertices = mesh->GetVertices();
+  const std::vector<Vector3> &vertices = mesh->GetVertices();
 
-    for (int i = 0; i < (int)vertices.size(); i += 3)
-    {
-        Vector3 W1 = model * vertices[i];
-        Vector3 W2 = model * vertices[i + 1];
-        Vector3 W3 = model * vertices[i + 2];
+  for (int i = 0; i < (int)vertices.size(); i += 3) {
+    Vector3 W1 = model * vertices[i];
+    Vector3 W2 = model * vertices[i + 1];
+    Vector3 W3 = model * vertices[i + 2];
 
-        Vector3 c1 = camera->ProjectVector(W1);
-        Vector3 c2 = camera->ProjectVector(W2);
-        Vector3 c3 = camera->ProjectVector(W3);
+    Vector3 c1 = camera->ProjectVector(W1);
+    Vector3 c2 = camera->ProjectVector(W2);
+    Vector3 c3 = camera->ProjectVector(W3);
 
-        if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) || !isInsideClipSpace(c3))
-            continue;
+    if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) ||
+        !isInsideClipSpace(c3))
+      continue;
 
-        int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height - 1);
-        int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height - 1);
-        int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height - 1);
 
-        Vector3 sp0((float)sx1, (float)sy1, c1.z);
-        Vector3 sp1((float)sx2, (float)sy2, c2.z);
-        Vector3 sp2((float)sx3, (float)sy3, c3.z);
+    Vector3 sp0((float)sx1, (float)sy1, c1.z);
+    Vector3 sp1((float)sx2, (float)sy2, c2.z);
+    Vector3 sp2((float)sx3, (float)sy3, c3.z);
 
-        framebuffer->DrawTriangleInterpolated(sp0, sp1, sp2, Color::RED, Color::GREEN, Color::BLUE,zbuffer);
-    }
+    // We use the struct following the slides recommendation to pass all
+    // triangle properties cleanly to the rasterizer
+    Image::sTriangleInfo triangleInfo;
+    triangleInfo.p0 = sp0;
+    triangleInfo.p1 = sp1;
+    triangleInfo.p2 = sp2;
+    triangleInfo.c0 = Color::RED;
+    triangleInfo.c1 = Color::GREEN;
+    triangleInfo.c2 = Color::BLUE;
+
+    // UVs and Texture are not used yet (for 3.4), but good to have them ready
+    triangleInfo.uv0 = Vector2(0, 0);
+    triangleInfo.uv1 = Vector2(0, 0);
+    triangleInfo.uv2 = Vector2(0, 0);
+
+    framebuffer->DrawTriangleInterpolated(triangleInfo, zbuffer);
+  }
 }
 
 void Entity::SetMesh(Mesh *m) { mesh = m; }
@@ -72,17 +88,16 @@ void Entity::Update(float seconds_elapsed) {
 
   time_acc += seconds_elapsed;
 
-  float angle = time_acc * rotation_speed;         
-  float offset = sinf(time_acc + phase) * 0.3f; 
+  float angle = time_acc * rotation_speed;
+  float offset = sinf(time_acc + phase) * 0.3f;
 
   Matrix44 T, R, S;
-  T.MakeTranslationMatrix(base_position.x + offset, base_position.y, base_position.z);
+  T.MakeTranslationMatrix(base_position.x + offset, base_position.y,
+                          base_position.z);
 
   R.MakeRotationMatrix(angle, rot_axis);
 
   S.MakeScaleMatrix(scale, scale, scale);
 
   model = T * R * S;
-
-  
 }
