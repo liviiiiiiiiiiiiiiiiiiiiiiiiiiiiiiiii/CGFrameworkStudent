@@ -503,7 +503,7 @@ void Image::DrawTriangleInterpolated(const Vector3 &p0, const Vector3 &p1,
 
 void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
                                      FloatImage *zbuffer) {
-  // 1. Preparation: Create 2D vectors for screen space calculations
+  // Preparation: Create 2D vectors for screen space calculations
   // We only need x and y for the barycentric coordinates, Z is interpolated
   // later
   Vector2 a(triangle.p0.x, triangle.p0.y);
@@ -516,7 +516,7 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
   if (fabs(denom) < 1e-8f)
     return; // Degenerate triangle (area is zero), skip drawing
 
-  // 2. Bounding Box Optimization
+  // Bounding Box Optimization
   // Instead of checking every pixel on screen, we only iterate over the pixels
   // inside the smallest rectangle that contains the triangle
   int minx = (int)floorf(std::min(a.x, std::min(b.x, c.x)));
@@ -532,25 +532,25 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
 
   const float eps = -1e-6f; // Epsilon for float inaccuracies
 
-  // 3. Loop through pixels in the Bounding Box
+  // Loop through pixels in the Bounding Box
   for (int y = miny; y <= maxy; ++y) {
     for (int x = minx; x <= maxx; ++x) {
       // Center of the pixel we are testing
       Vector2 p((float)x + 0.5f, (float)y + 0.5f);
 
       // Calculate Barycentric Weights (w0, w1, w2)
-      // These represent the area of the sub-triangles formed by point P
-      // and the vertices. They act as "influence percentages" of each vertex.
+      // These represent the area of the sub-triangles formed by point P and the
+      // vertices. They act as "influence percentages" of each vertex.
       float w0 = (b - p).Perpdot(c - p) / denom;
       float w1 = (c - p).Perpdot(a - p) / denom;
       float w2 = (a - p).Perpdot(b - p) / denom;
 
-      // 4. Check if point is inside triangle
+      // Check if point is inside triangle
       // If any weight is negative, the point is outside.
       if (w0 < eps || w1 < eps || w2 < eps)
         continue;
 
-      // 5. Z-Buffer Test (Depth Testing)
+      // Z-Buffer Test
       // Interpolate Z value using the weights: Z_pixel = w0*Z0 + w1*Z1 + w2*Z2
       float z = w0 * triangle.p0.z + w1 * triangle.p1.z + w2 * triangle.p2.z;
 
@@ -563,12 +563,36 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
       // Update Z-buffer with new closest depth
       zbuffer->SetPixel(x, y, z);
 
-      // 6. Color Interpolation
-      // Mix the 3 vertex colors using the same weights to get the pixel color
+      // 6. Color / Texture
       Color out;
-      out.Set(triangle.c0.r * w0 + triangle.c1.r * w1 + triangle.c2.r * w2,
-              triangle.c0.g * w0 + triangle.c1.g * w1 + triangle.c2.g * w2,
-              triangle.c0.b * w0 + triangle.c1.b * w1 + triangle.c2.b * w2);
+
+      // LAB 3. Task 3.4: Color the mesh using a texture
+      // Check both texture pointer AND that pixels array is valid (file loaded
+      // successfully)
+      if (triangle.texture && triangle.texture->pixels) {
+        // 1. Interpolate UVs using barycentric weights
+        Vector2 uv = triangle.uv0 * w0 + triangle.uv1 * w1 + triangle.uv2 * w2;
+
+        // 2. Map UV [0,1] to Texture Coordinates [0, width-1]
+        int tx =
+            (int)(uv.x * triangle.texture->width) % triangle.texture->width;
+        int ty =
+            (int)(uv.y * triangle.texture->height) % triangle.texture->height;
+
+        if (tx < 0)
+          tx += triangle.texture->width;
+        if (ty < 0)
+          ty += triangle.texture->height;
+
+        // 3. Fetch Pixel Color (Nearest Neighbor)
+        out = triangle.texture->GetPixelSafe(tx, ty);
+
+      } else {
+        // Fallback: Interpolate vertex colors if no texture is present
+        out.Set(triangle.c0.r * w0 + triangle.c1.r * w1 + triangle.c2.r * w2,
+                triangle.c0.g * w0 + triangle.c1.g * w1 + triangle.c2.g * w2,
+                triangle.c0.b * w0 + triangle.c1.b * w1 + triangle.c2.b * w2);
+      }
 
       SetPixel(x, y, out);
     }

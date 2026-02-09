@@ -67,10 +67,15 @@ void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
     triangleInfo.c1 = Color::GREEN;
     triangleInfo.c2 = Color::BLUE;
 
-    // UVs and Texture are not used yet (for 3.4), but good to have them ready
-    triangleInfo.uv0 = Vector2(0, 0);
-    triangleInfo.uv1 = Vector2(0, 0);
-    triangleInfo.uv2 = Vector2(0, 0);
+    // LAB 3. Task 3.4: Color the mesh using a texture
+    // Get UV coordinates from mesh
+    const std::vector<Vector2> &uvs = mesh->GetUVs();
+    triangleInfo.uv0 = uvs[i];
+    triangleInfo.uv1 = uvs[i + 1];
+    triangleInfo.uv2 = uvs[i + 2];
+
+    // Pass the texture stored in the entity
+    triangleInfo.texture = texture;
 
     framebuffer->DrawTriangleInterpolated(triangleInfo, zbuffer);
   }
