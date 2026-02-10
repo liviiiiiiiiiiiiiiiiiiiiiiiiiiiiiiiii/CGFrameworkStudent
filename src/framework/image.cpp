@@ -556,12 +556,11 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
 
       // Check against existing depth in buffer.
       // If new Z is >= stored Z, it means this pixel is behind something else.
-      float oldz = zbuffer->GetPixel(x, y);
-      if (z >= oldz)
-        continue;
-
-      // Update Z-buffer with new closest depth
-      zbuffer->SetPixel(x, y, z);
+      if (zbuffer) { //accept no occlusions (for interactivy)
+        float oldz = zbuffer->GetPixel(x, y);
+        if (z >= oldz) continue;
+        zbuffer->SetPixel(x, y, z);
+      }
 
       // 6. Color / Texture
       Color out;

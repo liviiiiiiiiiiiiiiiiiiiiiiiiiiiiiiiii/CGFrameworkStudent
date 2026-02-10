@@ -25,6 +25,12 @@ public:
   // Render properties
   Image *texture = nullptr; // Pointer to the texture image
 
+  enum class eRenderMode { POINTCLOUD, WIREFRAME, TRIANGLES, TRIANGLES_INTERPOLATED };
+  eRenderMode mode = eRenderMode::TRIANGLES_INTERPOLATED;
+
+  bool use_mesh_texture = true;     
+  bool use_interpolated_uvs = true;
+
   // Constructor and destructor
   Entity();
   ~Entity();
@@ -36,8 +42,7 @@ public:
   // Getters
   Mesh *GetMesh() const;
   Matrix44 GetModelMatrix() const;
-  void Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
-              const Color &c);
+  void Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer, const Color &c);
   void Update(float seconds_elapsed);
 };
 

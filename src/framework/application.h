@@ -102,6 +102,14 @@ public:
   CameraProp current_prop = PROP_NONE;
 
   FloatImage zbuffer;
+
+  Entity::eRenderMode render_mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+
+  bool use_mesh_texture = true;     // T
+  bool use_occlusions = true;       // Z
+  bool use_interpolated_uvs = true; // C
+
+
   
   // Add initialization method
   void InitParticleButton();

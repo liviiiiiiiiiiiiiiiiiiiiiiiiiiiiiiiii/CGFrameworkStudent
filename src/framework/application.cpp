@@ -135,8 +135,7 @@ void Application::Init(void) {
   // Init Camera
   camera = new Camera();
   camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
-                         100.f); // Degrees for gluPerspective
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f, 100.f); // Degrees for gluPerspective
 
   shared_mesh = new Mesh();
   shared_mesh->LoadOBJ("meshes/lee.obj");
@@ -203,28 +202,37 @@ void Application::Render(void) {
   framebuffer.SetPixel(0, 0, Color::GREEN);
   // Clear the framebuffer first (black or dark gray)
   framebuffer.Fill(Color(40, 40, 40));
-  zbuffer.Fill(1e9f);
 
-  // Render Entity
-  if (lab_mode == 1) {
-    entity->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
+
+  // Z toggle
+  FloatImage* zb = nullptr;
+  if (use_occlusions) {
+    zbuffer.Fill(1e9f);
+    zb = &zbuffer;
   }
 
-  // Draw UI on top
-  // InitUI();
-
-  if (showParticles) {
-    pS.Render(&framebuffer);
+  if (entity) {
+    entity->use_mesh_texture = use_mesh_texture;
+    entity->use_interpolated_uvs = use_interpolated_uvs;
+    entity->mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
   }
 
+  for (int i = 0; i < (int)entities.size(); ++i) {
+    entities[i]->use_mesh_texture = use_mesh_texture;
+    entities[i]->use_interpolated_uvs = use_interpolated_uvs;
+    entities[i]->mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+  }
+
+  // render
+  if (lab_mode == 1 && entity) {
+    entity->Render(&framebuffer, camera, zb, Color::BLUE);
+  }
   else if (lab_mode == 2) {
-    if (entities.size() > 0)
-      entities[0]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
-    if (entities.size() > 1)
-      entities[1]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
-    if (entities.size() > 2)
-      entities[2]->Render(&framebuffer, camera, &zbuffer, Color::BLUE);
+    for (int i = 0; i < (int)entities.size(); ++i) {
+      entities[i]->Render(&framebuffer, camera, zb, Color::BLUE);
+    }
   }
+
   framebuffer.Render();
 }
 
@@ -368,6 +376,24 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
                            camera->near_plane, camera->far_plane);
     break;
   }
+
+  case 'T':
+  case 't':
+    use_mesh_texture = !use_mesh_texture;
+    std::cout << (use_mesh_texture ? "T: USE MESH TEXTURE\n" : "T: USE COLOR PER VERTEX\n");
+    break;
+
+  case 'Z':
+  case 'z':
+    use_occlusions = !use_occlusions;
+    std::cout << (use_occlusions ? "Z: OCCLUSIONS\n" : "Z: NO OCCLUSIONS\n");
+    break;
+
+  case 'C':
+  case 'c':
+    use_interpolated_uvs = !use_interpolated_uvs;
+    std::cout << (use_interpolated_uvs ? "C: INTERPOLATED UVs\n" : "C: PLAIN COLOR\n");
+    break;
   }
 }
 
