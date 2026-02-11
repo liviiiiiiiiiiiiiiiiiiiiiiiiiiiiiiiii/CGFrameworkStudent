@@ -151,26 +151,41 @@ void Application::Init(void) {
 
   entities.clear();
 
+// --- Load 3 meshes ---
+  Mesh* mesh_lee  = new Mesh();  mesh_lee->LoadOBJ("meshes/lee.obj");
+  Mesh* mesh_anna = new Mesh();  mesh_anna->LoadOBJ("meshes/anna.obj");
+  Mesh* mesh_cleo = new Mesh();  mesh_cleo->LoadOBJ("meshes/cleo.obj");
+
+  // --- Load 3 textures (match each mesh) ---
+  Image* tex_lee  = new Image();  tex_lee->LoadTGA("textures/lee_color_specular.tga",  true);
+  Image* tex_anna = new Image();  tex_anna->LoadTGA("textures/anna_color_specular.tga", true);
+  Image* tex_cleo = new Image();  tex_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
+
+  entities.clear();
+
+  //multiple entitites (lee, anna, cleo)
   for (int i = 0; i < 3; ++i) {
-    Entity *e = new Entity();
-    e->SetMesh(shared_mesh);
-    e->texture = texture; // Assign texture
+    Entity* e = new Entity();
+    if (i == 0) { e->SetMesh(mesh_lee);  e->texture = tex_lee;  }
+    if (i == 1) { e->SetMesh(mesh_anna); e->texture = tex_anna; }
+    if (i == 2) { e->SetMesh(mesh_cleo); e->texture = tex_cleo; }
 
     e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
     e->rot_axis = Vector3::UP;
-    e->rotation_speed = 0.8f + 0.4f * i;
     e->scale = 0.6f + 0.2f * i;
     e->phase = i * 1.0f;
 
     e->Update(0.0f);
     entities.push_back(e);
   }
+
+  // single entity (lee)
   entity = new Entity();
-  entity->SetMesh(shared_mesh);
-  entity->texture = texture; // Assign texture
-  Matrix44 model;
-  model.SetIdentity();
+  entity->SetMesh(mesh_lee);
+  entity->texture = tex_lee;
+  Matrix44 model; model.SetIdentity();
   entity->SetModelMatrix(model);
+
 }
 
 // Init UI
