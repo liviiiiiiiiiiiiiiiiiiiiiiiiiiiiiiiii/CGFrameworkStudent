@@ -1,9 +1,9 @@
 #include "entity.h"
-#include "mesh.h"
-#include "image.h"
 #include "camera.h"
+#include "image.h"
+#include "mesh.h"
 
-#include <cmath> 
+#include <cmath>
 
 Entity::Entity() {
   mesh = nullptr;
@@ -21,89 +21,119 @@ Entity::~Entity() {
   // Note: We don't delete mesh here as it might be shared between entities
 }
 
+// LAB 2 Task 2.2: Implement isInsideClipSpace to discard vertices outside the
+// frustum
 bool isInsideClipSpace(const Vector3 &v) {
-  return (v.x >= -1 && v.x <= 1 && v.y >= -1 && v.y <= 1 && v.z >= -1 && v.z <= 1);
+  // Clip space is a 2x2x2 cube centered at (0,0,0) with range [-1, 1]
+  return (v.x >= -1 && v.x <= 1 && v.y >= -1 && v.y <= 1 && v.z >= -1 &&
+          v.z <= 1);
 }
 
+void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
+                    const Color &c) {
 
-void Entity::Render(Image* framebuffer, Camera* camera, FloatImage* zbuffer, const Color& c){
-  
-  if (!mesh || !framebuffer || !camera) return;
+  if (!mesh || !framebuffer || !camera)
+    return;
 
-  const std::vector<Vector3>& vertices = mesh->GetVertices();
-  for (int i = 0; i < (int)vertices.size(); i += 3){
+  const std::vector<Vector3> &vertices = mesh->GetVertices();
+  for (int i = 0; i < (int)vertices.size(); i += 3) {
+    // LAB 2 Task 2.2: Transform vertices (Local -> World)
     Vector3 W1 = model * vertices[i];
     Vector3 W2 = model * vertices[i + 1];
     Vector3 W3 = model * vertices[i + 2];
 
+    // LAB 2 Task 2.3: Project vertices (World -> Clip)
     Vector3 c1 = camera->ProjectVector(W1);
     Vector3 c2 = camera->ProjectVector(W2);
     Vector3 c3 = camera->ProjectVector(W3);
 
-    if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) || !isInsideClipSpace(c3)) continue;
+    // LAB 2 Task 2.2: Clipping
+    // Discard triangles if any vertex is outside the view frustum [-1, 1]
+    if (!isInsideClipSpace(c1) || !isInsideClipSpace(c2) ||
+        !isInsideClipSpace(c3))
+      continue;
 
-        int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height - 1);
-        int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height - 1);
-        int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width  - 1);
-        int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    // LAB 2 Task 2.2: Viewport Transform
+    // Convert from Clip Space [-1, 1] to Screen Space [0, width/height]
+    // Formula: screen = (clip + 1) * 0.5 * viewport_size
+    int sx1 = (c1.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy1 = (c1.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    int sx2 = (c2.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy2 = (c2.y + 1.0f) * 0.5f * (framebuffer->height - 1);
+    int sx3 = (c3.x + 1.0f) * 0.5f * (framebuffer->width - 1);
+    int sy3 = (c3.y + 1.0f) * 0.5f * (framebuffer->height - 1);
 
-        Vector3 sp0((float)sx1, (float)sy1, c1.z);
-        Vector3 sp1((float)sx2, (float)sy2, c2.z);
-        Vector3 sp2((float)sx3, (float)sy3, c3.z);
+    // Store screen coordinates and Z depth
+    Vector3 sp0((float)sx1, (float)sy1, c1.z);
+    Vector3 sp1((float)sx2, (float)sy2, c2.z);
+    Vector3 sp2((float)sx3, (float)sy3, c3.z);
 
+    // interactivity
+    if (mode == eRenderMode::POINTCLOUD) {
+      framebuffer->SetPixel((int)sp0.x, (int)sp0.y, c);
+      framebuffer->SetPixel((int)sp1.x, (int)sp1.y, c);
+      framebuffer->SetPixel((int)sp2.x, (int)sp2.y, c);
+      continue;
+    }
 
-        //interactivity
-        if (mode == eRenderMode::POINTCLOUD) {
-          framebuffer->SetPixel((int)sp0.x, (int)sp0.y, c);
-          framebuffer->SetPixel((int)sp1.x, (int)sp1.y, c);
-          framebuffer->SetPixel((int)sp2.x, (int)sp2.y, c);
-          continue;
-        }
+    if (mode == eRenderMode::WIREFRAME) {
+      framebuffer->DrawLineDDA((int)sp0.x, (int)sp0.y, (int)sp1.x, (int)sp1.y,
+                               c);
+      framebuffer->DrawLineDDA((int)sp1.x, (int)sp1.y, (int)sp2.x, (int)sp2.y,
+                               c);
+      framebuffer->DrawLineDDA((int)sp2.x, (int)sp2.y, (int)sp0.x, (int)sp0.y,
+                               c);
+      continue;
+    }
 
-        if (mode == eRenderMode::WIREFRAME) {
-          framebuffer->DrawLineDDA((int)sp0.x, (int)sp0.y, (int)sp1.x, (int)sp1.y, c);
-          framebuffer->DrawLineDDA((int)sp1.x, (int)sp1.y, (int)sp2.x, (int)sp2.y, c);
-          framebuffer->DrawLineDDA((int)sp2.x, (int)sp2.y, (int)sp0.x, (int)sp0.y, c);
-          continue;
-        }
+    //
+    // LAB 3 Task 3.1: Rasterize Triangles (Filled)
+    // If the mode is TRIANGLES, we use the interpolated drawing function
+    if (mode == eRenderMode::TRIANGLES) {
+      // Draw plain color triangle (no texture, no interpolated color)
+      framebuffer->DrawTriangleInterpolated(sp0, sp1, sp2, c, c, c, zbuffer);
+      continue;
+    }
 
-        // 
-        if (mode == eRenderMode::TRIANGLES) {
-          framebuffer->DrawTriangleInterpolated(sp0, sp1, sp2, c, c, c, zbuffer);
-          continue;
-        }
-    
-        Image::sTriangleInfo tri;
-        tri.p0 = sp0; tri.p1 = sp1; tri.p2 = sp2;
-        tri.texture = nullptr;
+    // LAB 3 Task 3.4: Texture Mapping Prep
+    // We pack all necessary data into sTriangleInfo struct to pass to the
+    // rasterizer
+    Image::sTriangleInfo tri;
+    tri.p0 = sp0;
+    tri.p1 = sp1;
+    tri.p2 = sp2;
+    tri.texture = nullptr;
 
-        // por defecto: color plano
-        tri.c0 = c; tri.c1 = c; tri.c2 = c;
-        tri.uv0 = Vector2(0,0); tri.uv1 = Vector2(0,0); tri.uv2 = Vector2(0,0);
+    // Default: plain color per vertex
+    tri.c0 = c;
+    tri.c1 = c;
+    tri.c2 = c;
+    tri.uv0 = Vector2(0, 0);
+    tri.uv1 = Vector2(0, 0);
+    tri.uv2 = Vector2(0, 0);
 
-        const std::vector<Vector2>& uvs = mesh->GetUVs();
-        bool has_uvs = (uvs.size() == mesh->GetVertices().size());
+    const std::vector<Vector2> &uvs = mesh->GetUVs();
+    bool has_uvs = (uvs.size() == mesh->GetVertices().size());
 
-        if (use_mesh_texture) { // T = texture
-          if (use_interpolated_uvs && texture && texture->pixels && has_uvs) { // C = UVs interpoladas
-            tri.texture = texture;
-            tri.uv0 = uvs[i];
-            tri.uv1 = uvs[i + 1];
-            tri.uv2 = uvs[i + 2];
-          }
-          // else: se queda color plano (PLAIN COLOR)
-        }
-        else { // T = color por vértice
-          tri.c0 = Color::RED;
-          tri.c1 = Color::GREEN;
-          tri.c2 = Color::BLUE;
-        }
+    if (use_mesh_texture) { // T = texture
+      if (use_interpolated_uvs && texture && texture->pixels &&
+          has_uvs) { // C = UVs interpoladas
+        tri.texture = texture;
+        tri.uv0 = uvs[i];
+        tri.uv1 = uvs[i + 1];
+        tri.uv2 = uvs[i + 2];
+      }
+      // else: se queda color plano (PLAIN COLOR)
+    } else { // T = color por vértice
+      tri.c0 = Color::RED;
+      tri.c1 = Color::GREEN;
+      tri.c2 = Color::BLUE;
+    }
 
-        framebuffer->DrawTriangleInterpolated(tri, zbuffer);
-
-}}
+    // LAB 3 Task 3.1 & 3.4: Call the full rasterizer with UVs/Texture info
+    framebuffer->DrawTriangleInterpolated(tri, zbuffer);
+  }
+}
 
 void Entity::SetMesh(Mesh *m) { mesh = m; }
 
@@ -117,17 +147,16 @@ void Entity::Update(float seconds_elapsed) {
 
   time_acc += seconds_elapsed;
 
-  float angle = time_acc * rotation_speed;         
-  float offset = sinf(time_acc + phase) * 0.3f; 
+  float angle = time_acc * rotation_speed;
+  float offset = sinf(time_acc + phase) * 0.3f;
 
   Matrix44 T, R, S;
-  T.MakeTranslationMatrix(base_position.x + offset, base_position.y, base_position.z);
+  T.MakeTranslationMatrix(base_position.x + offset, base_position.y,
+                          base_position.z);
 
   R.MakeRotationMatrix(angle, rot_axis);
 
   S.MakeScaleMatrix(scale, scale, scale);
 
   model = T * R * S;
-
-  
 }

@@ -38,6 +38,7 @@ Application::Application(const char *caption, int width, int height) {
   this->showParticles = false;
   this->pS.Init(width, height);
   this->lab_mode = 2; // Start with one entity mode
+  this->render_wireframe = false;
 }
 
 Application::~Application() {
@@ -48,94 +49,11 @@ Application::~Application() {
 void Application::Init(void) {
   std::cout << "Initiating app..." << std::endl;
 
-  // define and load image for line button. Then create button
-  Image *lineImg = new Image();
-  lineImg->LoadPNG("images/line.png");
-  lineButton = Button(lineImg, 5, 5, ButtonType::LINE);
-
-  // Rectangle button
-  Image *RectangleImg = new Image();
-  RectangleImg->LoadPNG("images/rectangle.png");
-  rectangleButton = Button(RectangleImg, 40, 5, ButtonType::RECTANGLEB);
-
-  // Triangle button
-  Image *TriangleImg = new Image();
-  TriangleImg->LoadPNG("images/triangle.png");
-  triangleButton = Button(TriangleImg, 75, 5, ButtonType::TRIANGLE);
-
-  // Color buttons (positioned after tool buttons)
-  int colorX = 120; // Starting X position for colors
-  int colorY = 5;
-  int colorSpacing = 35;
-
-  Image *whiteImg = new Image();
-  whiteImg->LoadPNG("images/white.png");
-  whiteColorButton = Button(whiteImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *blackImg = new Image();
-  blackImg->LoadPNG("images/black.png");
-  blackColorButton = Button(blackImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *redImg = new Image();
-  redImg->LoadPNG("images/red.png");
-  redColorButton = Button(redImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *greenImg = new Image();
-  greenImg->LoadPNG("images/green.png");
-  greenColorButton = Button(greenImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *blueImg = new Image();
-  blueImg->LoadPNG("images/blue.png");
-  blueColorButton = Button(blueImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *yellowImg = new Image();
-  yellowImg->LoadPNG("images/yellow.png");
-  yellowColorButton = Button(yellowImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *pinkImg = new Image();
-  pinkImg->LoadPNG("images/pink.png");
-  pinkColorButton = Button(pinkImg, colorX, colorY, ButtonType::COLORS);
-  colorX += colorSpacing;
-
-  Image *cyanImg = new Image();
-  cyanImg->LoadPNG("images/cyan.png");
-  cyanColorButton = Button(cyanImg, colorX, colorY, ButtonType::COLORS);
-
-  // Pencil button
-  Image *pencilImg = new Image();
-  pencilImg->LoadPNG("images/pencil.png");
-  pencilButton = Button(pencilImg, 435, 5, ButtonType::PENCIL);
-
-  // Eraser button
-  Image *eraserImg = new Image();
-  eraserImg->LoadPNG("images/eraser.png");
-  eraserButton = Button(eraserImg, 470, 5, ButtonType::ERASER);
-
-  // Clear button
-  Image *clearImg = new Image();
-  clearImg->LoadPNG("images/clear.png");
-  clearButton = Button(clearImg, 505, 5, ButtonType::ClearImage);
-
-  // Save button
-  Image *saveImg = new Image();
-  saveImg->LoadPNG("images/save.png");
-  saveButton = Button(saveImg, 540, 5, ButtonType::SaveImage);
-
-  // Load button
-  Image *loadImg = new Image();
-  loadImg->LoadPNG("images/load.png");
-  loadButton = Button(loadImg, 575, 5, ButtonType::LoadImageBtn);
-
   // Init Camera
   camera = new Camera();
   camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f, 100.f); // Degrees for gluPerspective
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
+                         100.f); // Degrees for gluPerspective
 
   shared_mesh = new Mesh();
   shared_mesh->LoadOBJ("meshes/lee.obj");
@@ -151,24 +69,39 @@ void Application::Init(void) {
 
   entities.clear();
 
-// --- Load 3 meshes ---
-  Mesh* mesh_lee  = new Mesh();  mesh_lee->LoadOBJ("meshes/lee.obj");
-  Mesh* mesh_anna = new Mesh();  mesh_anna->LoadOBJ("meshes/anna.obj");
-  Mesh* mesh_cleo = new Mesh();  mesh_cleo->LoadOBJ("meshes/cleo.obj");
+  // --- Load 3 meshes ---
+  Mesh *mesh_lee = new Mesh();
+  mesh_lee->LoadOBJ("meshes/lee.obj");
+  Mesh *mesh_anna = new Mesh();
+  mesh_anna->LoadOBJ("meshes/anna.obj");
+  Mesh *mesh_cleo = new Mesh();
+  mesh_cleo->LoadOBJ("meshes/cleo.obj");
 
   // --- Load 3 textures (match each mesh) ---
-  Image* tex_lee  = new Image();  tex_lee->LoadTGA("textures/lee_color_specular.tga",  true);
-  Image* tex_anna = new Image();  tex_anna->LoadTGA("textures/anna_color_specular.tga", true);
-  Image* tex_cleo = new Image();  tex_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
+  Image *tex_lee = new Image();
+  tex_lee->LoadTGA("textures/lee_color_specular.tga", true);
+  Image *tex_anna = new Image();
+  tex_anna->LoadTGA("textures/anna_color_specular.tga", true);
+  Image *tex_cleo = new Image();
+  tex_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
 
   entities.clear();
 
-  //multiple entitites (lee, anna, cleo)
+  // multiple entitites (lee, anna, cleo)
   for (int i = 0; i < 3; ++i) {
-    Entity* e = new Entity();
-    if (i == 0) { e->SetMesh(mesh_lee);  e->texture = tex_lee;  }
-    if (i == 1) { e->SetMesh(mesh_anna); e->texture = tex_anna; }
-    if (i == 2) { e->SetMesh(mesh_cleo); e->texture = tex_cleo; }
+    Entity *e = new Entity();
+    if (i == 0) {
+      e->SetMesh(mesh_lee);
+      e->texture = tex_lee;
+    }
+    if (i == 1) {
+      e->SetMesh(mesh_anna);
+      e->texture = tex_anna;
+    }
+    if (i == 2) {
+      e->SetMesh(mesh_cleo);
+      e->texture = tex_cleo;
+    }
 
     e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
     e->rot_axis = Vector3::UP;
@@ -183,34 +116,14 @@ void Application::Init(void) {
   entity = new Entity();
   entity->SetMesh(mesh_lee);
   entity->texture = tex_lee;
-  Matrix44 model; model.SetIdentity();
+  Matrix44 model;
+  model.SetIdentity();
   entity->SetModelMatrix(model);
-
 }
 
 // Init UI
 void Application::InitUI(void) {
-  // Draw buttons
-  lineButton.Draw(framebuffer);
-  rectangleButton.Draw(framebuffer);
-  triangleButton.Draw(framebuffer);
-  pencilButton.Draw(framebuffer);
-  eraserButton.Draw(framebuffer);
-  clearButton.Draw(framebuffer);
-
-  // Draw color buttons
-  whiteColorButton.Draw(framebuffer);
-  blackColorButton.Draw(framebuffer);
-  redColorButton.Draw(framebuffer);
-  greenColorButton.Draw(framebuffer);
-  blueColorButton.Draw(framebuffer);
-  yellowColorButton.Draw(framebuffer);
-  pinkColorButton.Draw(framebuffer);
-  cyanColorButton.Draw(framebuffer);
-
-  // Draw save and load buttons
-  saveButton.Draw(framebuffer);
-  loadButton.Draw(framebuffer);
+  // No UI required for Lab 3
 }
 
 void Application::Render(void) {
@@ -218,31 +131,38 @@ void Application::Render(void) {
   // Clear the framebuffer first (black or dark gray)
   framebuffer.Fill(Color(40, 40, 40));
 
-
   // Z toggle
-  FloatImage* zb = nullptr;
+  // LAB 3 Task 3.3: Z-Buffer
+  // We need to clear it every frame with a very large value (infinity)
+  FloatImage *zb = nullptr;
   if (use_occlusions) {
     zbuffer.Fill(1e9f);
     zb = &zbuffer;
   }
 
+  Entity::eRenderMode current_render_mode;
+  if (render_wireframe) {
+    current_render_mode = Entity::eRenderMode::WIREFRAME;
+  } else {
+    current_render_mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+  }
+
   if (entity) {
     entity->use_mesh_texture = use_mesh_texture;
     entity->use_interpolated_uvs = use_interpolated_uvs;
-    entity->mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+    entity->mode = current_render_mode;
   }
 
   for (int i = 0; i < (int)entities.size(); ++i) {
     entities[i]->use_mesh_texture = use_mesh_texture;
     entities[i]->use_interpolated_uvs = use_interpolated_uvs;
-    entities[i]->mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
+    entities[i]->mode = current_render_mode;
   }
 
   // render
   if (lab_mode == 1 && entity) {
     entity->Render(&framebuffer, camera, zb, Color::BLUE);
-  }
-  else if (lab_mode == 2) {
+  } else if (lab_mode == 2) {
     for (int i = 0; i < (int)entities.size(); ++i) {
       entities[i]->Render(&framebuffer, camera, zb, Color::BLUE);
     }
@@ -392,228 +312,47 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     break;
   }
 
+  // LAB 3 Task 3.5: Interactivity
+  // T: Toggle Mesh Texture
   case 'T':
   case 't':
     use_mesh_texture = !use_mesh_texture;
-    std::cout << (use_mesh_texture ? "T: USE MESH TEXTURE\n" : "T: USE COLOR PER VERTEX\n");
+    std::cout << (use_mesh_texture ? "T: USE MESH TEXTURE\n"
+                                   : "T: USE COLOR PER VERTEX\n");
     break;
 
+  // LAB 3 Task 3.5: Toggle Z-Buffer
   case 'Z':
   case 'z':
     use_occlusions = !use_occlusions;
     std::cout << (use_occlusions ? "Z: OCCLUSIONS\n" : "Z: NO OCCLUSIONS\n");
     break;
 
+  // LAB 3 Task 3.5: Toggle Interpolated UVs vs Plain Color
   case 'C':
   case 'c':
     use_interpolated_uvs = !use_interpolated_uvs;
-    std::cout << (use_interpolated_uvs ? "C: INTERPOLATED UVs\n" : "C: PLAIN COLOR\n");
+    std::cout << (use_interpolated_uvs ? "C: INTERPOLATED UVs\n"
+                                       : "C: PLAIN COLOR\n");
+    break;
+
+  // LAB 3 Task 3.5: Toggle Wireframe (Extra)
+  case 'W':
+  case 'w':
+    render_wireframe = !render_wireframe;
+    std::cout << (render_wireframe ? "W: WIREFRAME\n"
+                                   : "W: FILLED TRIANGLES\n");
     break;
   }
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event) {
-  if (event.button == SDL_BUTTON_LEFT) {
-    // check click on buttons
-    if (lineButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::LINE;
-      isDrawing = false; // Reset state
-      std::cout << "Line tool activated" << std::endl;
-      return;
-    }
-
-    if (rectangleButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::RECTANGLEB;
-      isDrawing = false; // Reset state
-      std::cout << "Rectangle tool activated" << std::endl;
-      return;
-    }
-
-    if (triangleButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::TRIANGLE;
-      triangleClickCount = 0; // Reset triangle state
-      std::cout << "Triangle tool activated" << std::endl;
-      return;
-    }
-
-    // Color button clicks - sets both border and fill color
-    if (whiteColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::WHITE;
-      fillColor = Color::WHITE;
-      std::cout << "Color: WHITE" << std::endl;
-      return;
-    }
-    if (blackColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::BLACK;
-      fillColor = Color::BLACK;
-      std::cout << "Color: BLACK" << std::endl;
-      return;
-    }
-    if (redColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::RED;
-      fillColor = Color::RED;
-      std::cout << "Color: RED" << std::endl;
-      return;
-    }
-    if (greenColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::GREEN;
-      fillColor = Color::GREEN;
-      std::cout << "Color: GREEN" << std::endl;
-      return;
-    }
-    if (blueColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::BLUE;
-      fillColor = Color::BLUE;
-      std::cout << "Color: BLUE" << std::endl;
-      return;
-    }
-    if (yellowColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::YELLOW;
-      fillColor = Color::YELLOW;
-      std::cout << "Color: YELLOW" << std::endl;
-      return;
-    }
-    if (pinkColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::PURPLE;
-      fillColor = Color::PURPLE;
-      std::cout << "Color: PURPLE" << std::endl;
-      return;
-    }
-    if (cyanColorButton.IsMouseInside(mouse_position)) {
-      currentColor = Color::CYAN;
-      fillColor = Color::CYAN;
-      std::cout << "Color: CYAN" << std::endl;
-      return;
-    }
-    if (clearButton.IsMouseInside(mouse_position)) {
-      framebuffer.Fill(Color::BLACK);
-      std::cout << "Canvas cleared" << std::endl;
-      return; // Note: This doesn't change ActiveTool
-    }
-    if (saveButton.IsMouseInside(mouse_position)) {
-      if (framebuffer.SaveTGA("drawing.tga")) {
-        std::cout << "Drawing saved to drawing.tga" << std::endl;
-      } else {
-        std::cout << "Failed to save drawing" << std::endl;
-      }
-      return;
-    }
-
-    if (loadButton.IsMouseInside(mouse_position)) {
-      if (framebuffer.LoadTGA("drawing.tga", true)) {
-        std::cout << "Drawing loaded from drawing.tga" << std::endl;
-      } else {
-        std::cout << "Failed to load drawing" << std::endl;
-      }
-      return;
-    }
-
-    if (pencilButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::PENCIL;
-      isDrawing = false;
-      std::cout << "Pencil tool activated" << std::endl;
-      return;
-    }
-
-    if (eraserButton.IsMouseInside(mouse_position)) {
-      ActiveTool = ButtonType::ERASER;
-      isDrawing = false;
-      std::cout << "Eraser tool activated" << std::endl;
-      return;
-    }
-
-    // If clicked outside the toolbar
-    if (mouse_position.y > 50) {
-      if (ActiveTool == ButtonType::LINE) {
-        if (!isDrawing) {
-          drawStartPoint = mouse_position;
-          isDrawing = true;
-          std::cout << "Line - Initial point" << std::endl;
-        } else {
-          framebuffer.DrawLineDDA(drawStartPoint.x, drawStartPoint.y,
-                                  mouse_position.x, mouse_position.y,
-                                  currentColor);
-          isDrawing = false;
-          std::cout << "Line drawn" << std::endl;
-        }
-      } else if (ActiveTool == ButtonType::RECTANGLEB) {
-        if (!isDrawing) {
-          drawStartPoint = mouse_position;
-          isDrawing = true;
-          std::cout << "Rectángulo - Primera esquina" << std::endl;
-        } else {
-          // Calculate width and height of the rectangle
-          int x = std::min(drawStartPoint.x, mouse_position.x);
-          int y = std::min(drawStartPoint.y, mouse_position.y);
-          int w = std::abs(mouse_position.x - drawStartPoint.x);
-          int h = std::abs(mouse_position.y - drawStartPoint.y);
-
-          framebuffer.DrawRect(x, y, w, h, currentColor, borderWidth, isFilled,
-                               fillColor);
-          isDrawing = false;
-          std::cout << "Rectángulo dibujado" << std::endl;
-        }
-      } else if (ActiveTool == ButtonType::TRIANGLE) {
-        // Triangle needs 3 clicks
-        if (triangleClickCount == 0) {
-          // First click: store first point
-          trianglePoint1 = mouse_position;
-          triangleClickCount = 1;
-          std::cout << "Triangle - Point 1" << std::endl;
-        } else if (triangleClickCount == 1) {
-          // Second click: store second point
-          trianglePoint2 = mouse_position;
-          triangleClickCount = 2;
-          std::cout << "Triangle - Point 2" << std::endl;
-        } else if (triangleClickCount == 2) {
-          // Third click: draw the triangle
-          Vector2 trianglePoint3 = mouse_position;
-          framebuffer.DrawTriangle(trianglePoint1, trianglePoint2,
-                                   trianglePoint3, currentColor, borderWidth,
-                                   isFilled, fillColor);
-          triangleClickCount = 0; // Reset for next triangle
-          std::cout << "Triangle drawn" << std::endl;
-        }
-      } else if (ActiveTool == ButtonType::PENCIL) {
-        lastPencilPosition = mouse_position;
-        isDrawing = true;
-        std::cout << "Pencil - Started drawing" << std::endl;
-      } else if (ActiveTool == ButtonType::ERASER) {
-        lastPencilPosition = mouse_position;
-        isDrawing = true;
-        std::cout << "Eraser - Started erasing" << std::endl;
-      }
-    }
-  }
+  // Camera orbit logic happens in Update() based on mouse_state
 }
 
-void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
-  if (event.button == SDL_BUTTON_LEFT) {
-    if ((ActiveTool == ButtonType::PENCIL ||
-         ActiveTool == ButtonType::ERASER) &&
-        isDrawing) {
-      isDrawing = false;
-      if (ActiveTool == ButtonType::PENCIL) {
-        std::cout << "Pencil - Stopped drawing" << std::endl;
-      } else {
-        std::cout << "Eraser - Stopped erasing" << std::endl;
-      }
-    }
-  }
-}
+void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {}
 
-void Application::OnMouseMove(SDL_MouseButtonEvent event) {
-  if (isDrawing && ActiveTool == ButtonType::PENCIL) {
-    framebuffer.DrawLineDDA(lastPencilPosition.x, lastPencilPosition.y,
-                            mouse_position.x, mouse_position.y, currentColor);
-    lastPencilPosition = mouse_position; // Update for next segment
-  } else if (isDrawing && ActiveTool == ButtonType::ERASER) {
-    // Eraser draws with black color to erase
-    framebuffer.DrawLineDDA(lastPencilPosition.x, lastPencilPosition.y,
-                            mouse_position.x, mouse_position.y, Color::BLACK);
-    lastPencilPosition = mouse_position; // Update for next segment
-  }
-}
+void Application::OnMouseMove(SDL_MouseButtonEvent event) {}
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {
   if (!camera)

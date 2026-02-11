@@ -503,6 +503,8 @@ void Image::DrawTriangleInterpolated(const Vector3 &p0, const Vector3 &p1,
 
 void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
                                      FloatImage *zbuffer) {
+
+  // LAB 3 Task 3.1: Raster of Triangles (Setup)
   // Preparation: Create 2D vectors for screen space calculations
   // We only need x and y for the barycentric coordinates, Z is interpolated
   // later
@@ -516,15 +518,15 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
   if (fabs(denom) < 1e-8f)
     return; // Degenerate triangle (area is zero), skip drawing
 
-  // Bounding Box Optimization
-  // Instead of checking every pixel on screen, we only iterate over the pixels
-  // inside the smallest rectangle that contains the triangle
+  // LAB 3 Task 3.1: Bounding Box Optimization
+  // Instead of checking every pixel on screen, we iterate over the smallest
+  // rectangle containing the triangle
   int minx = (int)floorf(std::min(a.x, std::min(b.x, c.x)));
   int maxx = (int)ceilf(std::max(a.x, std::max(b.x, c.x)));
   int miny = (int)floorf(std::min(a.y, std::min(b.y, c.y)));
   int maxy = (int)ceilf(std::max(a.y, std::max(b.y, c.y)));
 
-  // Clamp the bounding box to the image dimensions to avoid segfaults
+  // Clamp the bounding box to the image dimensions
   minx = std::max(minx, 0);
   miny = std::max(miny, 0);
   maxx = std::min(maxx, (int)width - 1);
@@ -532,7 +534,7 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
 
   const float eps = -1e-6f; // Epsilon for float inaccuracies
 
-  // Loop through pixels in the Bounding Box
+  // LAB 3 Task 3.1: Raster Loop
   for (int y = miny; y <= maxy; ++y) {
     for (int x = minx; x <= maxx; ++x) {
       // Center of the pixel we are testing
@@ -545,49 +547,51 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo &triangle,
       float w1 = (c - p).Perpdot(a - p) / denom;
       float w2 = (a - p).Perpdot(b - p) / denom;
 
-      // Check if point is inside triangle
-      // If any weight is negative, the point is outside.
+      // Check if point P is inside the triangle (all weights >= 0)
       if (w0 < eps || w1 < eps || w2 < eps)
         continue;
 
-      // Z-Buffer Test
-      // Interpolate Z value using the weights: Z_pixel = w0*Z0 + w1*Z1 + w2*Z2
+      // LAB 3 Task 3.3: Z-Buffer (Occlusions)
+      // Interpolate Z value: Z_pixel = w0*Z0 + w1*Z1 + w2*Z2
       float z = w0 * triangle.p0.z + w1 * triangle.p1.z + w2 * triangle.p2.z;
 
       // Check against existing depth in buffer.
       // If new Z is >= stored Z, it means this pixel is behind something else.
-      if (zbuffer) { //accept no occlusions (for interactivy)
+      if (zbuffer) { // accept no occlusions (for interactivy)
         float oldz = zbuffer->GetPixel(x, y);
-        if (z >= oldz) continue;
+        if (z >= oldz)
+          continue;
         zbuffer->SetPixel(x, y, z);
       }
 
-      // 6. Color / Texture
+      // LAB 3 Task 3.4: Texture Mapping
       Color out;
 
-      // LAB 3. Task 3.4: Color the mesh using a texture
-      // Check both texture pointer AND that pixels array is valid (file loaded
-      // successfully)
+      // Check if texture exists AND valid
       if (triangle.texture && triangle.texture->pixels) {
-        // 1. Interpolate UVs using barycentric weights
+
+        // 1. Interpolate UV coordinates using barycentric weights
+        // UV = w0*UV0 + w1*UV1 + w2*UV2
         Vector2 uv = triangle.uv0 * w0 + triangle.uv1 * w1 + triangle.uv2 * w2;
 
-        // 2. Map UV [0,1] to Texture Coordinates [0, width-1]
+        // 2. Map UV [0,1] to Texture (screen) Coordinates [0, width-1]
         int tx =
             (int)(uv.x * triangle.texture->width) % triangle.texture->width;
         int ty =
             (int)(uv.y * triangle.texture->height) % triangle.texture->height;
 
+        // Handle negative coordinates (wrap around)
         if (tx < 0)
           tx += triangle.texture->width;
         if (ty < 0)
           ty += triangle.texture->height;
 
-        // 3. Fetch Pixel Color (Nearest Neighbor)
+        // 3. Fetch Pixel Color (Nearest Neighbor sampling)
         out = triangle.texture->GetPixelSafe(tx, ty);
 
       } else {
-        // Fallback: Interpolate vertex colors if no texture is present
+        // Fallback: Interpolate vertex colors if no texture
+        // Color = w0*C0 + w1*C1 + w2*C2
         out.Set(triangle.c0.r * w0 + triangle.c1.r * w1 + triangle.c2.r * w2,
                 triangle.c0.g * w0 + triangle.c1.g * w1 + triangle.c2.g * w2,
                 triangle.c0.b * w0 + triangle.c1.b * w1 + triangle.c2.b * w2);
