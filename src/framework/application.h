@@ -120,6 +120,8 @@ public:
     this->window_width = width;
     this->window_height = height;
     this->framebuffer.Resize(width, height);
+    this->zbuffer.Resize(width, height);
+    this->zbuffer.Fill(1e9f);
     if (camera)
       camera->SetPerspective(camera->fov, width / (float)height,
                              camera->near_plane, camera->far_plane);

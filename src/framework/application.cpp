@@ -52,8 +52,7 @@ void Application::Init(void) {
   // Init Camera
   camera = new Camera();
   camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
-                         100.f); // Degrees for gluPerspective
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.3f, 45.f); // Degrees for gluPerspective
 
   shared_mesh = new Mesh();
   shared_mesh->LoadOBJ("meshes/lee.obj");
@@ -214,8 +213,7 @@ void Application::Update(float seconds_elapsed) {
       camera->UpdateViewMatrix();
     }
   }
-  if ((mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) && lab_mode != 0 &&
-      mouse_position.y > 50) {
+  if ((mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) && lab_mode != 0 && mouse_position.y > 50) {
     if (camera) {
       // Rotate around UP (Yaw)
       Vector3 vector_eye_center = camera->eye - camera->center;
@@ -264,12 +262,9 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     if (!camera)
       break;
 
-    if (current_prop == PROP_NEAR) {
-      std::cout << "HOOOOLAA" << std::endl;
-      camera->near_plane += 0.1f;
-      camera->UpdateViewMatrix();
+    if (current_prop == PROP_NEAR) {      camera->near_plane += 1.0;
     } else if (current_prop == PROP_FAR)
-      camera->far_plane += 0.1f;
+      camera->far_plane += 1.0f;
     else if (current_prop == PROP_FOV)
       camera->fov += 1.0f;
 
@@ -282,8 +277,7 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     if (camera->fov > 170.0f)
       camera->fov = 170.0f;
 
-    camera->SetPerspective(camera->fov, window_width / (float)window_height,
-                           camera->near_plane, camera->far_plane);
+    camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
     break;
   }
 
@@ -292,9 +286,9 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
       break;
 
     if (current_prop == PROP_NEAR)
-      camera->near_plane -= 0.1f;
+      camera->near_plane -= 1.0f;
     else if (current_prop == PROP_FAR)
-      camera->far_plane -= 0.1f;
+      camera->far_plane -= 1.0f;
     else if (current_prop == PROP_FOV)
       camera->fov -= 1.0f;
 
@@ -307,8 +301,7 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     if (camera->fov > 170.0f)
       camera->fov = 170.0f;
 
-    camera->SetPerspective(camera->fov, window_width / (float)window_height,
-                           camera->near_plane, camera->far_plane);
+    camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
     break;
   }
 
@@ -317,31 +310,24 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
   case 'T':
   case 't':
     use_mesh_texture = !use_mesh_texture;
-    std::cout << (use_mesh_texture ? "T: USE MESH TEXTURE\n"
-                                   : "T: USE COLOR PER VERTEX\n");
     break;
 
   // LAB 3 Task 3.5: Toggle Z-Buffer
   case 'Z':
   case 'z':
     use_occlusions = !use_occlusions;
-    std::cout << (use_occlusions ? "Z: OCCLUSIONS\n" : "Z: NO OCCLUSIONS\n");
     break;
 
   // LAB 3 Task 3.5: Toggle Interpolated UVs vs Plain Color
   case 'C':
   case 'c':
     use_interpolated_uvs = !use_interpolated_uvs;
-    std::cout << (use_interpolated_uvs ? "C: INTERPOLATED UVs\n"
-                                       : "C: PLAIN COLOR\n");
     break;
 
   // LAB 3 Task 3.5: Toggle Wireframe (Extra)
   case 'W':
   case 'w':
     render_wireframe = !render_wireframe;
-    std::cout << (render_wireframe ? "W: WIREFRAME\n"
-                                   : "W: FILLED TRIANGLES\n");
     break;
   }
 }
