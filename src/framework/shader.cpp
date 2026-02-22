@@ -310,7 +310,6 @@ void Shader::Release()
 	compiled = false;
 }
 
-
 void Shader::Enable()
 {
 	/*if (current == this)
@@ -323,7 +322,6 @@ void Shader::Enable()
 
 	last_slot = 0;
 }
-
 
 void Shader::Disable()
 {

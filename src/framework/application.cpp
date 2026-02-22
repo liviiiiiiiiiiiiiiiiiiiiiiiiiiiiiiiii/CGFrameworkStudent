@@ -47,78 +47,19 @@ Application::~Application() {
 }
 
 void Application::Init(void) {
-  std::cout << "Initiating app..." << std::endl;
 
-  // Init Camera
-  camera = new Camera();
-  camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.3f, 45.f); // Degrees for gluPerspective
+  //lab 4
+  quad_mesh = new Mesh();
+  quad_mesh->CreateQuad(); // generates 2 triangles covering clip-space [-1..1]
 
-  shared_mesh = new Mesh();
-  shared_mesh->LoadOBJ("meshes/lee.obj");
-
-  // LAB 3. Task 3.4: Color the mesh using a texture
-  // Load Texture. We need to create a new Image object and load the TGA file.
-  Image *texture = new Image();
-  // We pass 'true' to flip_y because textures in OpenGL/Graphics are usually
-  // stored inverted relative to the screen coordinates (bottom-left vs
-  // top-left), solving upside-down textures. This is explicitly mentioned in
-  // the lab slides.
-  texture->LoadTGA("textures/lee_color_specular.tga", true);
-
-  entities.clear();
-
-  // --- Load 3 meshes ---
-  Mesh *mesh_lee = new Mesh();
-  mesh_lee->LoadOBJ("meshes/lee.obj");
-  Mesh *mesh_anna = new Mesh();
-  mesh_anna->LoadOBJ("meshes/anna.obj");
-  Mesh *mesh_cleo = new Mesh();
-  mesh_cleo->LoadOBJ("meshes/cleo.obj");
-
-  // --- Load 3 textures (match each mesh) ---
-  Image *tex_lee = new Image();
-  tex_lee->LoadTGA("textures/lee_color_specular.tga", true);
-  Image *tex_anna = new Image();
-  tex_anna->LoadTGA("textures/anna_color_specular.tga", true);
-  Image *tex_cleo = new Image();
-  tex_cleo->LoadTGA("textures/cleo_color_specular.tga", true);
-
-  entities.clear();
-
-  // multiple entitites (lee, anna, cleo)
-  for (int i = 0; i < 3; ++i) {
-    Entity *e = new Entity();
-    if (i == 0) {
-      e->SetMesh(mesh_lee);
-      e->texture = tex_lee;
-    }
-    if (i == 1) {
-      e->SetMesh(mesh_anna);
-      e->texture = tex_anna;
-    }
-    if (i == 2) {
-      e->SetMesh(mesh_cleo);
-      e->texture = tex_cleo;
-    }
-
-    e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
-    e->rot_axis = Vector3::UP;
-    e->scale = 0.6f + 0.2f * i;
-    e->phase = i * 1.0f;
-
-    e->Update(0.0f);
-    entities.push_back(e);
-  }
-
-  // single entity (lee)
-  entity = new Entity();
-  entity->SetMesh(mesh_lee);
-  entity->texture = tex_lee;
-  Matrix44 model;
-  model.SetIdentity();
-  entity->SetModelMatrix(model);
+  quad_shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+  if (!quad_shader)
+{
+    std::cout << "ERROR: quad_shader is NULL (shader load/compile failed)\n";
+    exit(1);
 }
+}
+
 
 // Init UI
 void Application::InitUI(void) {
@@ -126,48 +67,20 @@ void Application::InitUI(void) {
 }
 
 void Application::Render(void) {
-  framebuffer.SetPixel(0, 0, Color::GREEN);
-  // Clear the framebuffer first (black or dark gray)
-  framebuffer.Fill(Color(40, 40, 40));
 
-  // Z toggle
-  // LAB 3 Task 3.3: Z-Buffer
-  // We need to clear it every frame with a very large value (infinity)
-  FloatImage *zb = nullptr;
-  if (use_occlusions) {
-    zbuffer.Fill(1e9f);
-    zb = &zbuffer;
-  }
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
-  Entity::eRenderMode current_render_mode;
-  if (render_wireframe) {
-    current_render_mode = Entity::eRenderMode::WIREFRAME;
-  } else {
-    current_render_mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED;
-  }
+    glDisable(GL_DEPTH_TEST); 
 
-  if (entity) {
-    entity->use_mesh_texture = use_mesh_texture;
-    entity->use_interpolated_uvs = use_interpolated_uvs;
-    entity->mode = current_render_mode;
-  }
+    quad_shader->Enable();
 
-  for (int i = 0; i < (int)entities.size(); ++i) {
-    entities[i]->use_mesh_texture = use_mesh_texture;
-    entities[i]->use_interpolated_uvs = use_interpolated_uvs;
-    entities[i]->mode = current_render_mode;
-  }
+    quad_shader->SetUniform1("u_mode", formula_mode);
+    quad_shader->SetUniform1("u_aspect", window_width / (float)window_height); //send values from CPU to GPU
 
-  // render
-  if (lab_mode == 1 && entity) {
-    entity->Render(&framebuffer, camera, zb, Color::BLUE);
-  } else if (lab_mode == 2) {
-    for (int i = 0; i < (int)entities.size(); ++i) {
-      entities[i]->Render(&framebuffer, camera, zb, Color::BLUE);
-    }
-  }
+    quad_mesh->Render(GL_TRIANGLES);
 
-  framebuffer.Render();
+    quad_shader->Disable();
 }
 
 void Application::Update(float seconds_elapsed) {
@@ -235,100 +148,12 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     exit(0);
     break; // ESC key, kill the app
 
-  case '1':
-    lab_mode = 1; // SINGLE ENTITY
-    break;
-
-  case '2':
-    lab_mode = 2; // MULTIPLE ANIMATED ENTITIES
-    break;
-
-  case 'N':
-  case 'n':
-    current_prop = PROP_NEAR;
-    break;
-
-  case 'F':
-  case 'f':
-    current_prop = PROP_FAR;
-    break;
-
-  case 'V':
-  case 'v':
-    current_prop = PROP_FOV;
-    break;
-
-  case '+': {
-    if (!camera)
-      break;
-
-    if (current_prop == PROP_NEAR) {      camera->near_plane += 1.0;
-    } else if (current_prop == PROP_FAR)
-      camera->far_plane += 1.0f;
-    else if (current_prop == PROP_FOV)
-      camera->fov += 1.0f;
-
-    if (camera->near_plane < 0.001f)
-      camera->near_plane = 0.001f;
-    if (camera->far_plane <= camera->near_plane + 0.01f)
-      camera->far_plane = camera->near_plane + 0.01f;
-    if (camera->fov < 10.0f)
-      camera->fov = 10.0f;
-    if (camera->fov > 170.0f)
-      camera->fov = 170.0f;
-
-    camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
-    break;
-  }
-
-  case '-': {
-    if (!camera)
-      break;
-
-    if (current_prop == PROP_NEAR)
-      camera->near_plane -= 1.0f;
-    else if (current_prop == PROP_FAR)
-      camera->far_plane -= 1.0f;
-    else if (current_prop == PROP_FOV)
-      camera->fov -= 1.0f;
-
-    if (camera->near_plane < 0.001f)
-      camera->near_plane = 0.001f;
-    if (camera->far_plane <= camera->near_plane + 0.01f)
-      camera->far_plane = camera->near_plane + 0.01f;
-    if (camera->fov < 10.0f)
-      camera->fov = 10.0f;
-    if (camera->fov > 170.0f)
-      camera->fov = 170.0f;
-
-    camera->SetPerspective(camera->fov, window_width / (float)window_height, camera->near_plane, camera->far_plane);
-    break;
-  }
-
-  // LAB 3 Task 3.5: Interactivity
-  // T: Toggle Mesh Texture
-  case 'T':
-  case 't':
-    use_mesh_texture = !use_mesh_texture;
-    break;
-
-  // LAB 3 Task 3.5: Toggle Z-Buffer
-  case 'Z':
-  case 'z':
-    use_occlusions = !use_occlusions;
-    break;
-
-  // LAB 3 Task 3.5: Toggle Interpolated UVs vs Plain Color
-  case 'C':
-  case 'c':
-    use_interpolated_uvs = !use_interpolated_uvs;
-    break;
-
-  // LAB 3 Task 3.5: Toggle Wireframe (Extra)
-  case 'W':
-  case 'w':
-    render_wireframe = !render_wireframe;
-    break;
+    case 'a': formula_mode = 0; break; // a
+    case 'b': formula_mode = 1; break; // b
+    case 'c': formula_mode = 2; break; // c
+    case 'd': formula_mode = 3; break; // d
+    case 'e': formula_mode = 4; break; // e
+    case 'f': formula_mode = 5; break; // f
   }
 }
 

@@ -12,6 +12,9 @@
 #include "image.h"
 #include "main/includes.h"
 #include "particleSystem.h"
+#include "shader.h"
+#include "texture.h"
+
 
 class Application {
 public:
@@ -94,8 +97,7 @@ public:
 
   Entity *entity;
   Camera *camera;
-  int lab_mode =
-      0; // 0: no entity, 1: single entity, 2: multiple animated entities
+  int lab_mode = 0; // 0: no entity, 1: single entity, 2: multiple animated entities
   std::vector<Entity *> entities;
   Mesh *shared_mesh = nullptr;
 
@@ -110,6 +112,12 @@ public:
   bool use_occlusions = true;       // Z
   bool use_interpolated_uvs = true; // C
   bool render_wireframe = false;    // W
+
+  //lab 4
+  Mesh* quad_mesh = nullptr;
+  Shader* quad_shader = nullptr;
+
+  int formula_mode = 0;
 
   // Add initialization method
   void InitParticleButton();
