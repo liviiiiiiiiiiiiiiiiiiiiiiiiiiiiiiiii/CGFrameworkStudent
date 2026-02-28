@@ -42,7 +42,7 @@ void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
     Vector3 W2 = model * vertices[i + 1];
     Vector3 W3 = model * vertices[i + 2];
 
-    // LAB 2 Task 2.3: Project vertices (World -> Clip)
+    // LAB 2 Task 2.2: Project vertices (World -> Clip)
     Vector3 c1 = camera->ProjectVector(W1);
     Vector3 c2 = camera->ProjectVector(W2);
     Vector3 c3 = camera->ProjectVector(W3);

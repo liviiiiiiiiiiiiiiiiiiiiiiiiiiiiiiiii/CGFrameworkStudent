@@ -48,18 +48,16 @@ Application::~Application() {
 
 void Application::Init(void) {
 
-  //lab 4
+  // lab 4
   quad_mesh = new Mesh();
   quad_mesh->CreateQuad(); // generates 2 triangles covering clip-space [-1..1]
 
   quad_shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
-  if (!quad_shader)
-{
+  if (!quad_shader) {
     std::cout << "ERROR: quad_shader is NULL (shader load/compile failed)\n";
     exit(1);
+  }
 }
-}
-
 
 // Init UI
 void Application::InitUI(void) {
@@ -68,19 +66,21 @@ void Application::InitUI(void) {
 
 void Application::Render(void) {
 
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
+  glClearColor(0.f, 0.f, 0.f, 1.f);                   // clear color buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear depth buffer
 
-    glDisable(GL_DEPTH_TEST); 
+  glDisable(GL_DEPTH_TEST); // disable depth test
 
-    quad_shader->Enable();
+  quad_shader->Enable(); // enable shader
 
-    quad_shader->SetUniform1("u_mode", formula_mode);
-    quad_shader->SetUniform1("u_aspect", window_width / (float)window_height); //send values from CPU to GPU
+  quad_shader->SetUniform1("u_mode", formula_mode);
+  quad_shader->SetUniform1(
+      "u_aspect",
+      window_width / (float)window_height); // send values from CPU to GPU
 
-    quad_mesh->Render(GL_TRIANGLES);
+  quad_mesh->Render(GL_TRIANGLES); // render
 
-    quad_shader->Disable();
+  quad_shader->Disable(); // disable shader
 }
 
 void Application::Update(float seconds_elapsed) {
@@ -126,7 +126,8 @@ void Application::Update(float seconds_elapsed) {
       camera->UpdateViewMatrix();
     }
   }
-  if ((mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) && lab_mode != 0 && mouse_position.y > 50) {
+  if ((mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) && lab_mode != 0 &&
+      mouse_position.y > 50) {
     if (camera) {
       // Rotate around UP (Yaw)
       Vector3 vector_eye_center = camera->eye - camera->center;
@@ -148,12 +149,24 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     exit(0);
     break; // ESC key, kill the app
 
-    case 'a': formula_mode = 0; break; // a
-    case 'b': formula_mode = 1; break; // b
-    case 'c': formula_mode = 2; break; // c
-    case 'd': formula_mode = 3; break; // d
-    case 'e': formula_mode = 4; break; // e
-    case 'f': formula_mode = 5; break; // f
+  case 'a':
+    formula_mode = 0;
+    break; // a
+  case 'b':
+    formula_mode = 1;
+    break; // b
+  case 'c':
+    formula_mode = 2;
+    break; // c
+  case 'd':
+    formula_mode = 3;
+    break; // d
+  case 'e':
+    formula_mode = 4;
+    break; // e
+  case 'f':
+    formula_mode = 5;
+    break; // f
   }
 }
 
