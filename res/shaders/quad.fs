@@ -4,6 +4,7 @@ uniform int u_mode;
 uniform float u_aspect;
 uniform sampler2D u_texture;
 uniform int u_show_texture;
+uniform float u_time;
 
 void main()
 {
@@ -94,7 +95,7 @@ void main()
              float vignette = smoothstep(0.8, 0.2, dist);//1 in the center, 0 at the edges
              color = texColor * vignette;
         }
-        else
+        else if (u_mode == 5)
         {
              // f)we need to implemet an averaging filter
              vec3 sum = vec3(0.0);
@@ -106,6 +107,37 @@ void main()
                  }
              }
              color = sum / 9.0; //divide by 9 to get the average
+        }
+        else if (u_mode == 6)
+        {
+            // g) Animated Pixelization
+            // Determine the amount of "blocks" or large pixels.
+            // We use sin(u_time) so this amount oscillates between 20 and 120 over time.
+            float pixels = 20.0 + 100.0 * (0.5 + 0.5 * sin(u_time));
+            
+            // Create a grid effect by rounding the UV coordinates.
+            // By multiplying by 'pixels', we move to a larger coordinate space,
+            // 'floor' removes the decimals (creating the block), and dividing back returns to [0,1].
+            vec2 pixelated_uv = floor(uv * pixels) / pixels;
+            
+            color = texture2D(u_texture, pixelated_uv).rgb;
+        }
+        else if (u_mode == 7)
+        {
+            // h) Augmentic Radial Chromatic Aberration
+            // Calculate the direction and distance from the center of the screen.
+            vec2 dir = uv - 0.5;
+            float dist = length(dir);
+            
+            // The effect's strength increases with distance from the center (dist)
+            // and pulses rapidly using the u_time variable.
+            float strength = 0.05 * dist * (1.1 + sin(u_time * 3.0));
+            
+            // Offset the red and blue channels in opposite directions based on the
+            // direction from the center. The green channel remains fixed.
+            color.r = texture2D(u_texture, uv - dir * strength).r;
+            color.g = texture2D(u_texture, uv).g;
+            color.b = texture2D(u_texture, uv + dir * strength).b;
         }
     }
 

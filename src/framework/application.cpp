@@ -177,6 +177,12 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
   case 'f':
     formula_mode = 5;
     break; // f
+  case 'g':
+    formula_mode = 6;
+    break; // g
+  case 'h':
+    formula_mode = 7;
+    break; // h
   }
 }
 
