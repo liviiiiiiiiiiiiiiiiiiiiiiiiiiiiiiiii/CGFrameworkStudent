@@ -77,9 +77,8 @@ void Application::Render(void) {
 
   quad_shader->SetUniform1("u_mode", formula_mode);
   quad_shader->SetUniform1("u_show_texture", show_image_filters ? 1 : 0);
-  quad_shader->SetUniform1(
-      "u_aspect",
-      window_width / (float)window_height); // send values from CPU to GPU
+  quad_shader->SetUniform1("u_aspect", window_width / (float)window_height);
+  quad_shader->SetUniform1("u_time", time); // send values from CPU to GPU
 
   if (quad_texture)
     quad_shader->SetTexture("u_texture", quad_texture);
@@ -90,6 +89,7 @@ void Application::Render(void) {
 }
 
 void Application::Update(float seconds_elapsed) {
+  this->time += seconds_elapsed;
   if (showParticles) {
     pS.Update(seconds_elapsed, window_width, window_height);
     framebuffer.Fill(Color::BLACK);

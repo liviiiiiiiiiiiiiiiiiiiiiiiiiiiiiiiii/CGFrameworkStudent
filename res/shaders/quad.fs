@@ -75,22 +75,37 @@ void main()
         else if (u_mode == 2)
         {
             // c)
-            color = texColor; // placeholder
+            float luminance = dot(texColor, vec3(0.299, 0.587, 0.114));
+            vec3 yellow = vec3(250.0, 237.0, 39.0) / 255.0;
+            color = luminance * yellow;
         }
         else if (u_mode == 3)
         {
              // d)
-             color = texColor; // placeholder
+             float luminance = dot(texColor, vec3(0.299, 0.587, 0.114));
+             float threshold = 0.5;
+             float binary = step(threshold, luminance);
+             color = vec3(binary);
         }
         else if (u_mode == 4)
         {
              // e)
-             color = texColor; // placeholder
+             float dist = length(uv - vec2(0.5)); //distance from the center
+             float vignette = smoothstep(0.8, 0.2, dist);//1 in the center, 0 at the edges
+             color = texColor * vignette;
         }
         else
         {
-             // f)
-             color = texColor; // placeholder
+             // f)we need to implemet an averaging filter
+             vec3 sum = vec3(0.0);
+             float offset = 1.0 / 256.0;
+             for (int i = -1; i <= 1; i++) {
+                 for (int j = -1; j <= 1; j++) {
+                    //get the sum of the the nine pixels around the current pixel
+                     sum += texture2D(u_texture, uv + vec2(float(i), float(j)) * offset).rgb; 
+                 }
+             }
+             color = sum / 9.0; //divide by 9 to get the average
         }
     }
 
