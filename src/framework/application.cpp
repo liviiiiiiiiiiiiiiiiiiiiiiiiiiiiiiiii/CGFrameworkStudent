@@ -57,6 +57,8 @@ void Application::Init(void) {
     std::cout << "ERROR: quad_shader is NULL (shader load/compile failed)\n";
     exit(1);
   }
+
+  quad_texture = Texture::Get("images/fruits.png");
 }
 
 // Init UI
@@ -74,9 +76,13 @@ void Application::Render(void) {
   quad_shader->Enable(); // enable shader
 
   quad_shader->SetUniform1("u_mode", formula_mode);
+  quad_shader->SetUniform1("u_show_texture", show_image_filters ? 1 : 0);
   quad_shader->SetUniform1(
       "u_aspect",
       window_width / (float)window_height); // send values from CPU to GPU
+
+  if (quad_texture)
+    quad_shader->SetTexture("u_texture", quad_texture);
 
   quad_mesh->Render(GL_TRIANGLES); // render
 
@@ -148,6 +154,10 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
   case SDLK_ESCAPE:
     exit(0);
     break; // ESC key, kill the app
+
+  case SDLK_SPACE:
+    show_image_filters = !show_image_filters;
+    break; // Spacebar to toggle image filters
 
   case 'a':
     formula_mode = 0;

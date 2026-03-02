@@ -15,7 +15,6 @@
 #include "shader.h"
 #include "texture.h"
 
-
 class Application {
 public:
   // Window
@@ -97,7 +96,8 @@ public:
 
   Entity *entity;
   Camera *camera;
-  int lab_mode = 0; // 0: no entity, 1: single entity, 2: multiple animated entities
+  int lab_mode =
+      0; // 0: no entity, 1: single entity, 2: multiple animated entities
   std::vector<Entity *> entities;
   Mesh *shared_mesh = nullptr;
 
@@ -113,11 +113,13 @@ public:
   bool use_interpolated_uvs = true; // C
   bool render_wireframe = false;    // W
 
-  //lab 4
-  Mesh* quad_mesh = nullptr;
-  Shader* quad_shader = nullptr;
+  // lab 4
+  Mesh *quad_mesh = nullptr;
+  Shader *quad_shader = nullptr;
+  Texture *quad_texture = nullptr;
 
   int formula_mode = 0;
+  bool show_image_filters = false;
 
   // Add initialization method
   void InitParticleButton();
