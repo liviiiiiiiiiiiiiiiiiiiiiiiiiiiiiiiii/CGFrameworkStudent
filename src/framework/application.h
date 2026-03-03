@@ -11,7 +11,6 @@
 #include "framework.h"
 #include "image.h"
 #include "main/includes.h"
-#include "particleSystem.h"
 #include "shader.h"
 #include "texture.h"
 
@@ -90,10 +89,6 @@ public:
   void Render(void);
   void Update(float dt);
 
-  // particle system
-  ParticleSystem pS;
-  bool showParticles;
-
   Entity *entity;
   Camera *camera;
   int lab_mode =
@@ -119,7 +114,12 @@ public:
   Texture *quad_texture = nullptr;
 
   int formula_mode = 0;
+  int subtask_mode = 0;
   bool show_image_filters = false;
+
+  // lab 5
+  Shader *raster_shader = nullptr;
+  Texture *entity_texture = nullptr;
 
   // Add initialization method
   void InitParticleButton();

@@ -34,9 +34,6 @@ Application::Application(const char *caption, int width, int height) {
 
   this->lastPencilPosition = Vector2(0, 0);
 
-  // Particle system
-  this->showParticles = false;
-  this->pS.Init(width, height);
   this->lab_mode = 2; // Start with one entity mode
   this->render_wireframe = false;
 }
@@ -59,6 +56,53 @@ void Application::Init(void) {
   }
 
   quad_texture = Texture::Get("images/fruits.png");
+
+  // lab 5: GPU mesh rendering
+  raster_shader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+  if (!raster_shader) {
+    std::cout << "ERROR: raster_shader is NULL (shader load/compile failed)\n";
+    exit(1);
+  }
+
+  // Init Camera
+  camera = new Camera();
+  camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
+  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
+                         100.f);
+
+  // Load mesh
+  shared_mesh = new Mesh();
+  shared_mesh->LoadOBJ("meshes/lee.obj");
+
+  // Load GPU texture
+  entity_texture = Texture::Get("textures/lee_color_specular.tga");
+
+  // Create animated entities
+  entities.clear();
+  for (int i = 0; i < 3; ++i) {
+    Entity *e = new Entity();
+    e->SetMesh(shared_mesh);
+    e->shader = raster_shader;
+    e->gpu_texture = entity_texture;
+
+    e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
+    e->rot_axis = Vector3::UP;
+    e->rotation_speed = 0.8f + 0.4f * i;
+    e->scale = 0.6f + 0.2f * i;
+    e->phase = i * 1.0f;
+
+    e->Update(0.0f);
+    entities.push_back(e);
+  }
+
+  // Single static entity
+  entity = new Entity();
+  entity->SetMesh(shared_mesh);
+  entity->shader = raster_shader;
+  entity->gpu_texture = entity_texture;
+  Matrix44 model;
+  model.SetIdentity();
+  entity->SetModelMatrix(model);
 }
 
 // Init UI
@@ -71,29 +115,43 @@ void Application::Render(void) {
   glClearColor(0.f, 0.f, 0.f, 1.f);                   // clear color buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear depth buffer
 
-  glDisable(GL_DEPTH_TEST); // disable depth test
+  // Lab 5: GPU 3D mesh rendering
+  if (lab_mode == 5) {
+    glEnable(GL_DEPTH_TEST); // Enable occlusions
 
-  quad_shader->Enable(); // enable shader
+    // Render all entities using the GPU raster shader
+    for (Entity *e : entities) {
+      e->Render(camera);
+    }
 
-  quad_shader->SetUniform1("u_mode", formula_mode);
+    glDisable(GL_DEPTH_TEST);
+    return;
+  }
+
+  // Lab 4: Quad Shader (Tasks 2, 3, 4)
+  glDisable(GL_DEPTH_TEST);
+  quad_shader->Enable();
+
+  // Task 3 starts at mode 6 in the shader
+  int u_mode_to_send = subtask_mode;
+  if (formula_mode == 3) {
+    u_mode_to_send = 6 + (subtask_mode % 2); // 6 and 7 are the transforms
+  }
+
+  quad_shader->SetUniform1("u_mode", u_mode_to_send);
   quad_shader->SetUniform1("u_show_texture", show_image_filters ? 1 : 0);
   quad_shader->SetUniform1("u_aspect", window_width / (float)window_height);
-  quad_shader->SetUniform1("u_time", time); // send values from CPU to GPU
+  quad_shader->SetUniform1("u_time", time);
 
   if (quad_texture)
     quad_shader->SetTexture("u_texture", quad_texture);
 
-  quad_mesh->Render(GL_TRIANGLES); // render
-
-  quad_shader->Disable(); // disable shader
+  quad_mesh->Render(GL_TRIANGLES);
+  quad_shader->Disable();
 }
 
 void Application::Update(float seconds_elapsed) {
   this->time += seconds_elapsed;
-  if (showParticles) {
-    pS.Update(seconds_elapsed, window_width, window_height);
-    framebuffer.Fill(Color::BLACK);
-  }
   if (lab_mode == 2) {
     for (Entity *e : entities) {
       e->Update(seconds_elapsed);
@@ -153,36 +211,47 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
   switch (event.keysym.sym) {
   case SDLK_ESCAPE:
     exit(0);
-    break; // ESC key, kill the app
+    break;
 
-  case SDLK_SPACE:
-    show_image_filters = !show_image_filters;
-    break; // Spacebar to toggle image filters
+  case '1':
+    formula_mode = 1; // Task 1: Patterns
+    show_image_filters = false;
+    break;
+  case '2':
+    formula_mode = 2; // Task 2: Filters
+    show_image_filters = true;
+    break;
+  case '3':
+    formula_mode = 3; // Task 3: Animations
+    show_image_filters = true;
+    break;
 
   case 'a':
-    formula_mode = 0;
-    break; // a
+    subtask_mode = 0;
+    break;
   case 'b':
-    formula_mode = 1;
-    break; // b
+    subtask_mode = 1;
+    break;
   case 'c':
-    formula_mode = 2;
-    break; // c
+    subtask_mode = 2;
+    break;
   case 'd':
-    formula_mode = 3;
-    break; // d
+    subtask_mode = 3;
+    break;
   case 'e':
-    formula_mode = 4;
-    break; // e
+    subtask_mode = 4;
+    break;
   case 'f':
-    formula_mode = 5;
-    break; // f
-  case 'g':
-    formula_mode = 6;
-    break; // g
-  case 'h':
-    formula_mode = 7;
-    break; // h
+    subtask_mode = 5;
+    break;
+
+  case 'l':
+  case 'L':
+    if (lab_mode != 5)
+      lab_mode = 5;
+    else
+      lab_mode = 2;
+    break;
   }
 }
 

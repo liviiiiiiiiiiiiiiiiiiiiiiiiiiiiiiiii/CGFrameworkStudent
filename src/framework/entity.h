@@ -5,6 +5,8 @@
 #include "framework.h"
 #include "image.h"
 #include "mesh.h"
+#include "shader.h"
+#include "texture.h"
 
 class Entity {
 public:
@@ -23,12 +25,22 @@ public:
   float phase;
 
   // Render properties
-  Image *texture = nullptr; // Pointer to the texture image
+  Image *texture =
+      nullptr; // Pointer to the texture image (CPU software rasterizer)
 
-  enum class eRenderMode { POINTCLOUD, WIREFRAME, TRIANGLES, TRIANGLES_INTERPOLATED };
+  // GPU rendering properties ("material")
+  Shader *shader = nullptr;       // Shader used to render this entity
+  Texture *gpu_texture = nullptr; // GPU texture for the raster shader
+
+  enum class eRenderMode {
+    POINTCLOUD,
+    WIREFRAME,
+    TRIANGLES,
+    TRIANGLES_INTERPOLATED
+  };
   eRenderMode mode = eRenderMode::TRIANGLES_INTERPOLATED;
 
-  bool use_mesh_texture = true;     
+  bool use_mesh_texture = true;
   bool use_interpolated_uvs = true;
 
   // Constructor and destructor
@@ -42,7 +54,9 @@ public:
   // Getters
   Mesh *GetMesh() const;
   Matrix44 GetModelMatrix() const;
-  void Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer, const Color &c);
+  void Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
+              const Color &c);
+  void Render(Camera *camera); // GPU raster rendering
   void Update(float seconds_elapsed);
 };
 
