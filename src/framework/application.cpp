@@ -58,11 +58,16 @@ void Application::Init(void) {
   quad_texture = Texture::Get("images/fruits.png");
 
   // lab 5: GPU mesh rendering
-  raster_shader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
-  if (!raster_shader) {
-    std::cout << "ERROR: raster_shader is NULL (shader load/compile failed)\n";
-    exit(1);
-  }
+  // raster_shader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+  // if (!raster_shader) {
+  //   std::cout << "ERROR: raster_shader is NULL (shader load/compile
+  //   failed)\n"; exit(1);
+  // }
+
+  // TODO: Cargar los shaders creados para Lab 5 (Gouraud y Phong)
+  // Shader* gouraud_shader = Shader::Get("shaders/gouraud.vs",
+  // "shaders/gouraud.fs"); Shader* phong_shader =
+  // Shader::Get("shaders/phong.vs", "shaders/phong.fs");
 
   // Init Camera
   camera = new Camera();
@@ -75,15 +80,22 @@ void Application::Init(void) {
   shared_mesh->LoadOBJ("meshes/lee.obj");
 
   // Load GPU texture
-  entity_texture = Texture::Get("textures/lee_color_specular.tga");
+  // entity_texture = Texture::Get("textures/lee_color_specular.tga");
+
+  // TODO: Ejercicio 1.1 y 1.5 - Crear el material y asignarle el shader y
+  // texturas correspondientes material = new Material(); material->shader = ...
+  // material->color_texture = Texture::Get("textures/lee_color_specular.tga");
+  // material->specular_texture = ...
+  // material->normal_texture = ...
 
   // Create animated entities
   entities.clear();
   for (int i = 0; i < 3; ++i) {
     Entity *e = new Entity();
     e->SetMesh(shared_mesh);
-    e->shader = raster_shader;
-    e->gpu_texture = entity_texture;
+    // e->shader = raster_shader; // Ahora usamos Material
+    // e->gpu_texture = entity_texture; // Ahora usamos Material
+    e->material = material;
 
     e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
     e->rot_axis = Vector3::UP;
@@ -96,10 +108,10 @@ void Application::Init(void) {
   }
 
   // Single static entity
-  entity = new Entity();
   entity->SetMesh(shared_mesh);
-  entity->shader = raster_shader;
-  entity->gpu_texture = entity_texture;
+  // entity->shader = raster_shader; // Ahora usamos Material
+  // entity->gpu_texture = entity_texture; // Ahora usamos Material
+  entity->material = material;
   Matrix44 model;
   model.SetIdentity();
   entity->SetModelMatrix(model);
@@ -119,10 +131,26 @@ void Application::Render(void) {
   if (lab_mode == 5) {
     glEnable(GL_DEPTH_TEST); // Enable occlusions
 
-    // Render all entities using the GPU raster shader
+    // TODO: Ejercicio 1.2 - Llenar uniform_data con valores de la cámara y luz
+    // ambiente uniform_data.viewprojection_matrix =
+    // camera->GetViewProjectionMatrix(); uniform_data.camera_position =
+    // camera->eye; uniform_data.ambient_light = Vector3(0.1f, 0.1f, 0.1f);
+
+    // TODO: Ejercicio 1.6 - Implementar MultiPass (Renderizar con varias luces)
+    // Para cada luz en la escena:
+    // ... configura la luz en uniform_data.current_light
+    // Si es la segunda luz o más, configura el modo de mezcla de OpenGL:
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Pista: para sumar colores en
+    // framebuffer Cambia comportamiento si es la primera luz
+
+    // Render all entities usando uniform_data
     for (Entity *e : entities) {
-      e->Render(camera);
+      e->Render(uniform_data);
     }
+
+    // Al final del multipass:
+    // glDisable(GL_BLEND);
 
     glDisable(GL_DEPTH_TEST);
     return;
@@ -252,6 +280,14 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     else
       lab_mode = 2;
     break;
+
+    // TODO: 2 Interactivity - Añadir control de teclas
+    // case 'p': case 'P': // Cambiar a shader de Phong
+    // case 'g': case 'G': // Cambiar a shader de Gouraud
+    // case 'c': case 'C': // Activar/Desactivar texturas de color
+    // (material->use_color_texture) case 's': case 'S': // Activar/Desactivar
+    // texturas especulares case 'n': case 'N': // Activar/Desactivar texturas
+    // de normales case '1': case '2': ... // Cambiar número de luces a pintar
   }
 }
 

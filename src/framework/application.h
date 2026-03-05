@@ -11,6 +11,7 @@
 #include "framework.h"
 #include "image.h"
 #include "main/includes.h"
+#include "material.h" // Añadido para Lab 5
 #include "shader.h"
 #include "texture.h"
 
@@ -118,8 +119,13 @@ public:
   bool show_image_filters = false;
 
   // lab 5
-  Shader *raster_shader = nullptr;
-  Texture *entity_texture = nullptr;
+  Material *material =
+      nullptr; // TODO: Puedes tener un material para Gouraud y otro para Phong,
+               // o actualizar el shader del material actual
+
+  // TODO: Variable para guardar todos los uniforms que vayamos a pasar en el
+  // lab 5
+  sUniformData uniform_data;
 
   // Add initialization method
   void InitParticleButton();

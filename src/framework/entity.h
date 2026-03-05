@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "framework.h"
 #include "image.h"
+#include "material.h"
 #include "mesh.h"
 #include "shader.h"
 #include "texture.h"
@@ -29,8 +30,7 @@ public:
       nullptr; // Pointer to the texture image (CPU software rasterizer)
 
   // GPU rendering properties ("material")
-  Shader *shader = nullptr;       // Shader used to render this entity
-  Texture *gpu_texture = nullptr; // GPU texture for the raster shader
+  Material *material = nullptr; // Material encapsulates shader, textures, etc.
 
   enum class eRenderMode {
     POINTCLOUD,
@@ -56,7 +56,7 @@ public:
   Matrix44 GetModelMatrix() const;
   void Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
               const Color &c);
-  void Render(Camera *camera); // GPU raster rendering
+  void Render(sUniformData &uniformData); // GPU raster rendering con Material
   void Update(float seconds_elapsed);
 };
 

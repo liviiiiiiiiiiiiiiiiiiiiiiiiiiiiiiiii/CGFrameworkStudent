@@ -136,29 +136,21 @@ void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
 }
 
 // GPU rendering: renders the entity's mesh using its shader ("material")
-void Entity::Render(Camera *camera) {
-  if (!mesh || !shader || !camera)
+void Entity::Render(sUniformData &uniformData) {
+  if (!mesh || !material)
     return;
 
-  // Get the up-to-date view-projection matrix
-  Matrix44 viewprojection = camera->GetViewProjectionMatrix();
+  // TODO: Ejercicio 1.2 - Sube la matriz modelo actualizada al uniformData
+  // uniformData.model_matrix = model;
 
-  // Enable the shader
-  shader->Enable();
-
-  // Send uniforms to the GPU
-  shader->SetMatrix44("u_model", model);
-  shader->SetMatrix44("u_viewprojection", viewprojection);
-
-  // Bind the texture if available
-  if (gpu_texture)
-    shader->SetTexture("u_texture", gpu_texture);
+  // TODO: Habilitar el material aquí
+  // material->Enable(uniformData);
 
   // Render the mesh on the GPU
   mesh->Render(GL_TRIANGLES);
 
-  // Disable the shader
-  shader->Disable();
+  // TODO: Deshabilitar el material aquí
+  // material->Disable();
 }
 
 void Entity::SetMesh(Mesh *m) { mesh = m; }
