@@ -97,6 +97,10 @@ public:
   std::vector<Entity *> entities;
   Mesh *shared_mesh = nullptr;
 
+  // Lights
+  std::vector<sLight> lights;
+  int current_light = 0;
+
   enum CameraProp { PROP_NONE, PROP_NEAR, PROP_FAR, PROP_FOV };
   CameraProp current_prop = PROP_NONE;
 

@@ -9,7 +9,6 @@
 struct sLight {
   Vector3 position;
   Vector3 color;
-  // ...
 };
 
 // TODO: Ejercicio 1.2 - Añade a esta estructura todas las variables uniformes
@@ -37,10 +36,10 @@ public:
   Texture *specular_texture = nullptr;
   Texture *normal_texture = nullptr;
 
-  float Ka;        // ambient factor
-  float Kd;        // diffuse factor
-  float Ks;        // specular factor
-  float shininess; // alpha
+  Vector3 Ka;      // ambient reflection (vec3 RGB)
+  Vector3 Kd;      // diffuse reflection (vec3 RGB)
+  Vector3 Ks;      // specular reflection (vec3 RGB)
+  float shininess; // alpha (float)
 
   // Switches para activar/desactivar texturas desde el teclado (Lab 5, sección
   // 2)

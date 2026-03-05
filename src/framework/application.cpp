@@ -57,17 +57,13 @@ void Application::Init(void) {
 
   quad_texture = Texture::Get("images/fruits.png");
 
-  // lab 5: GPU mesh rendering
-  // raster_shader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
-  // if (!raster_shader) {
-  //   std::cout << "ERROR: raster_shader is NULL (shader load/compile
-  //   failed)\n"; exit(1);
-  // }
-
-  // TODO: Cargar los shaders creados para Lab 5 (Gouraud y Phong)
-  // Shader* gouraud_shader = Shader::Get("shaders/gouraud.vs",
-  // "shaders/gouraud.fs"); Shader* phong_shader =
-  // Shader::Get("shaders/phong.vs", "shaders/phong.fs");
+  // lab 5: GPU mesh rendering - Cargar shaders
+  Shader *gouraud_shader =
+      Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
+  if (!gouraud_shader) {
+    std::cout << "ERROR: gouraud_shader is NULL (shader load/compile failed)\n";
+    exit(1);
+  }
 
   // Init Camera
   camera = new Camera();
@@ -80,41 +76,47 @@ void Application::Init(void) {
   shared_mesh->LoadOBJ("meshes/lee.obj");
 
   // Load GPU texture
-  // entity_texture = Texture::Get("textures/lee_color_specular.tga");
+  Texture *entity_texture = Texture::Get("textures/lee_color_specular.tga");
 
-  // TODO: Ejercicio 1.1 y 1.5 - Crear el material y asignarle el shader y
-  // texturas correspondientes material = new Material(); material->shader = ...
-  // material->color_texture = Texture::Get("textures/lee_color_specular.tga");
-  // material->specular_texture = ...
-  // material->normal_texture = ...
+  // Ejercicio 1.1 - Crear el material y asignarle el shader y texturas
+  material = new Material();
+  material->shader = gouraud_shader;
+  material->color_texture = entity_texture;
+  // material->normal_texture = Texture::Get("textures/lee_normal.tga"); //
+  // TODO: Ejercicio 1.5
+
+  // Crear luces
+  sLight light1;
+  light1.position = Vector3(1.f, 1.5f, 1.5f);
+  light1.color = Vector3(
+      15.f, 15.f, 15.f); // Intensidad alta para compensar atenuación 1/d²
+  lights.push_back(light1);
 
   // Create animated entities
   entities.clear();
-  for (int i = 0; i < 3; ++i) {
-    Entity *e = new Entity();
-    e->SetMesh(shared_mesh);
-    // e->shader = raster_shader; // Ahora usamos Material
-    // e->gpu_texture = entity_texture; // Ahora usamos Material
-    e->material = material;
+  // for (int i = 0; i < 3; ++i) {
+  //   Entity *e = new Entity();
+  //   e->SetMesh(shared_mesh);
+  //   e->material = material;
 
-    e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
-    e->rot_axis = Vector3::UP;
-    e->rotation_speed = 0.8f + 0.4f * i;
-    e->scale = 0.6f + 0.2f * i;
-    e->phase = i * 1.0f;
+  //   e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
+  //   e->rot_axis = Vector3::UP;
+  //   e->rotation_speed = 0.8f + 0.4f * i;
+  //   e->scale = 0.6f + 0.2f * i;
+  //   e->phase = i * 1.0f;
 
-    e->Update(0.0f);
-    entities.push_back(e);
-  }
+  //   e->Update(0.0f);
+  //   entities.push_back(e);
+  // }
 
   // Single static entity
+  entity = new Entity();
   entity->SetMesh(shared_mesh);
-  // entity->shader = raster_shader; // Ahora usamos Material
-  // entity->gpu_texture = entity_texture; // Ahora usamos Material
   entity->material = material;
   Matrix44 model;
   model.SetIdentity();
   entity->SetModelMatrix(model);
+  entities.push_back(entity);
 }
 
 // Init UI
@@ -131,26 +133,23 @@ void Application::Render(void) {
   if (lab_mode == 5) {
     glEnable(GL_DEPTH_TEST); // Enable occlusions
 
-    // TODO: Ejercicio 1.2 - Llenar uniform_data con valores de la cámara y luz
-    // ambiente uniform_data.viewprojection_matrix =
-    // camera->GetViewProjectionMatrix(); uniform_data.camera_position =
-    // camera->eye; uniform_data.ambient_light = Vector3(0.1f, 0.1f, 0.1f);
+    // Ejercicio 1.2 - Llenar uniform_data con valores de la cámara y luz
+    // ambiente
+    uniform_data.viewprojection_matrix = camera->GetViewProjectionMatrix();
+    uniform_data.camera_position = camera->eye;
+    uniform_data.ambient_light = Vector3(0.1f, 0.1f, 0.1f);
 
-    // TODO: Ejercicio 1.6 - Implementar MultiPass (Renderizar con varias luces)
-    // Para cada luz en la escena:
-    // ... configura la luz en uniform_data.current_light
-    // Si es la segunda luz o más, configura el modo de mezcla de OpenGL:
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Pista: para sumar colores en
-    // framebuffer Cambia comportamiento si es la primera luz
+    // Configurar la primera luz
+    if (!lights.empty()) {
+      uniform_data.current_light = lights[0];
+    }
 
-    // Render all entities usando uniform_data
+    // TODO: Ejercicio 1.6 - Implementar MultiPass (loop por cada luz)
+
+    // Render all entities
     for (Entity *e : entities) {
       e->Render(uniform_data);
     }
-
-    // Al final del multipass:
-    // glDisable(GL_BLEND);
 
     glDisable(GL_DEPTH_TEST);
     return;

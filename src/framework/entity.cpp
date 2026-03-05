@@ -140,17 +140,17 @@ void Entity::Render(sUniformData &uniformData) {
   if (!mesh || !material)
     return;
 
-  // TODO: Ejercicio 1.2 - Sube la matriz modelo actualizada al uniformData
-  // uniformData.model_matrix = model;
+  // Ejercicio 1.2 - Sube la matriz modelo actualizada al uniformData
+  uniformData.model_matrix = model;
 
-  // TODO: Habilitar el material aquí
-  // material->Enable(uniformData);
+  // Habilitar el material
+  material->Enable(uniformData);
 
   // Render the mesh on the GPU
   mesh->Render(GL_TRIANGLES);
 
-  // TODO: Deshabilitar el material aquí
-  // material->Disable();
+  // Deshabilitar el material
+  material->Disable();
 }
 
 void Entity::SetMesh(Mesh *m) { mesh = m; }

@@ -2,9 +2,9 @@
 
 Material::Material() {
   // Valores por defecto sugeridos
-  Ka = 0.2f;
-  Kd = 0.8f;
-  Ks = 0.5f;
+  Ka = Vector3(0.2f, 0.2f, 0.2f);
+  Kd = Vector3(0.8f, 0.8f, 0.8f);
+  Ks = Vector3(0.5f, 0.5f, 0.5f);
   shininess = 30.0f;
 
   use_color_texture = false;
@@ -21,25 +21,27 @@ void Material::Enable(const sUniformData &uniformData) {
     return;
 
   // TODO: Ejercicio 1.1 y 1.2 - Habilitar el shader
-  // shader->Enable();
+  shader->Enable();
 
   // TODO: Subir matrices
-  // shader->SetMatrix44("u_model", uniformData.model_matrix);
-  // shader->SetMatrix44("u_viewprojection", uniformData.viewprojection_matrix);
+  shader->SetMatrix44("u_model", uniformData.model_matrix);
+  shader->SetMatrix44("u_viewprojection", uniformData.viewprojection_matrix);
 
   // TODO: Subir posición de cámara
-  // shader->SetVector3("u_camera_position", uniformData.camera_position);
+  shader->SetVector3("u_camera_position", uniformData.camera_position);
 
   // TODO: Subir luz ambiente
-  // shader->SetVector3("u_ambient_light", uniformData.ambient_light);
+  shader->SetVector3("u_ambient_light", uniformData.ambient_light);
 
   // TODO: Subir luz actual (posición, color) desde uniformData.current_light
-  // shader->SetVector3("u_light_position", uniformData.current_light.position);
-  // shader->SetVector3("u_light_color", uniformData.current_light.color);
+  shader->SetVector3("u_light_position", uniformData.current_light.position);
+  shader->SetVector3("u_light_color", uniformData.current_light.color);
 
   // TODO: Subir las propiedades del material (Ka, Kd, Ks, shininess)
-  // shader->SetFloat("u_ka", Ka);
-  // ...
+  shader->SetVector3("u_ka", Ka);
+  shader->SetVector3("u_kd", Kd);
+  shader->SetVector3("u_ks", Ks);
+  shader->SetFloat("u_shininess", shininess);
 
   // TODO: Ejercicio 1.5 - Subir texturas si están disponibles y usarlas según
   // los flags if (color_texture && use_color_texture)
@@ -59,5 +61,5 @@ void Material::Disable() {
     return;
 
   // TODO: Deshabilitar shader
-  // shader->Disable();
+  shader->Disable();
 }
