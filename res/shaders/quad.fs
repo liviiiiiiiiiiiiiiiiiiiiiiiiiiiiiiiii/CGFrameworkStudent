@@ -13,9 +13,7 @@ void main()
     p.x *= u_aspect; 
 	vec3 color = vec3(0.0);
 
-    // ==================================
     // TASK 2.2 PROCEDURAL PATTERNS
-    // ==================================
     if (u_show_texture == 0) 
     {
         if (u_mode == 0)
@@ -55,9 +53,7 @@ void main()
             color = vec3(0.0, intensity, 0.0);
         }
     }
-    // ==================================
     // TASK 2.3 IMAGE FILTERS
-    // ==================================
     else 
     {
         vec3 texColor = texture2D(u_texture, uv).rgb;

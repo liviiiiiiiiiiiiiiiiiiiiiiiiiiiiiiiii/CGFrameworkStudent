@@ -99,7 +99,7 @@ public:
 
   // Lights
   std::vector<sLight> lights;
-  int current_light = 0;
+  int num_active_lights = 1;
 
   enum CameraProp { PROP_NONE, PROP_NEAR, PROP_FAR, PROP_FOV };
   CameraProp current_prop = PROP_NONE;
@@ -123,16 +123,19 @@ public:
   bool show_image_filters = false;
 
   // lab 5
-  Material *material =
-      nullptr; // TODO: Puedes tener un material para Gouraud y otro para Phong,
+  Material *material = nullptr; // TODO: Puedes tener un material para Gouraud y otro para Phong,
                // o actualizar el shader del material actual
 
   // TODO: Variable para guardar todos los uniforms que vayamos a pasar en el
   // lab 5
   sUniformData uniform_data;
 
+  Shader* gouraud_shader = nullptr;
+  Shader* phong_shader = nullptr;
+
   // Add initialization method
   void InitParticleButton();
+
 
   // Other methods to control the app
   void SetWindowSize(int width, int height) {

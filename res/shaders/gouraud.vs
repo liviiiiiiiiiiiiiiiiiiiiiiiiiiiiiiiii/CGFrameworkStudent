@@ -35,13 +35,21 @@ void main()
     float dist = distance(u_light_position, v_world_position);
     float attenuation = 1.0 / (dist * dist);
     // Calcula ambiente, difuso y especular...
+
     // 1.3
     //ka*Ia
     vec3 ambient = u_ambient_light * u_ka; 
+
     //kd*Id*max(0,N.L)
     vec3 diffuse = u_light_color * u_kd * max(dot(L, N), 0.0);
+
     //ks*Is*max(0,R.V)^shininess
-    vec3 specular = u_light_color * u_ks * pow(max(dot(R, V), 0.0), u_shininess);
+    float NdotL = max(dot(L, N), 0.0); // if the light does not hit the front face, there should not be a specular highlight either.
+
+    vec3 specular = vec3(0.0);
+    if (NdotL > 0.0)
+        specular = u_light_color * u_ks * pow(max(dot(R, V), 0.0), u_shininess);
+
     //Ip = Ia*ka + Id*kd*max(0,N.L) + Is*ks*max(0,R.V)^shininess
     v_color = ambient + attenuation*(diffuse + specular);
 

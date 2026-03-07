@@ -135,21 +135,16 @@ void Entity::Render(Image *framebuffer, Camera *camera, FloatImage *zbuffer,
   }
 }
 
-// GPU rendering: renders the entity's mesh using its shader ("material")
-void Entity::Render(sUniformData &uniformData) {
+void Entity::Render(sUniformData &uniformData){
+  
   if (!mesh || !material)
     return;
 
-  // Ejercicio 1.2 - Sube la matriz modelo actualizada al uniformData
+  // Entity owns the model matrix in the pipeline
   uniformData.model_matrix = model;
 
-  // Habilitar el material
   material->Enable(uniformData);
-
-  // Render the mesh on the GPU
   mesh->Render(GL_TRIANGLES);
-
-  // Deshabilitar el material
   material->Disable();
 }
 

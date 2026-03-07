@@ -43,127 +43,216 @@ Application::~Application() {
   isDrawing = false;
 }
 
-void Application::Init(void) {
+void Application::Init(void){
+    quad_mesh = new Mesh();
+    quad_mesh->CreateQuad();
 
-  // lab 4
-  quad_mesh = new Mesh();
-  quad_mesh->CreateQuad(); // generates 2 triangles covering clip-space [-1..1]
+    quad_shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+    if (!quad_shader) {
+        exit(1);
+    }
 
-  quad_shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
-  if (!quad_shader) {
-    std::cout << "ERROR: quad_shader is NULL (shader load/compile failed)\n";
-    exit(1);
-  }
+    quad_texture = Texture::Get("images/fruits.png");
 
-  quad_texture = Texture::Get("images/fruits.png");
 
-  // lab 5: GPU mesh rendering - Cargar shaders
-  Shader *gouraud_shader =
-      Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
-  if (!gouraud_shader) {
-    std::cout << "ERROR: gouraud_shader is NULL (shader load/compile failed)\n";
-    exit(1);
-  }
+    // Camera
+    camera = new Camera();
+    camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
+    camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f, 100.f);
 
-  // Init Camera
-  camera = new Camera();
-  camera->LookAt(Vector3(0.f, 0.f, 1.5f), Vector3(0.f, 0.f, 0.f), Vector3::UP);
-  camera->SetPerspective(45.f, window_width / (float)window_height, 0.01f,
-                         100.f);
+  // Meshes
+  Mesh* anna_mesh = new Mesh();
+  anna_mesh->LoadOBJ("meshes/anna.obj");
 
-  // Load mesh
-  shared_mesh = new Mesh();
-  shared_mesh->LoadOBJ("meshes/lee.obj");
+  Mesh* lee_mesh = new Mesh();
+  lee_mesh->LoadOBJ("meshes/lee.obj");
 
-  // Load GPU texture
-  Texture *entity_texture = Texture::Get("textures/lee_color_specular.tga");
+  Mesh* cleo_mesh = new Mesh();
+  cleo_mesh->LoadOBJ("meshes/cleo.obj");
 
-  // Ejercicio 1.1 - Crear el material y asignarle el shader y texturas
-  material = new Material();
-  material->shader = gouraud_shader;
-  material->color_texture = entity_texture;
-  // material->normal_texture = Texture::Get("textures/lee_normal.tga"); //
-  // TODO: Ejercicio 1.5
+    // Shaders
+    gouraud_shader = Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
+    if (!gouraud_shader) {
+        exit(1);
+    }
 
-  // Crear luces
-  sLight light1;
-  light1.position = Vector3(1.f, 1.5f, 1.5f);
-  light1.color = Vector3(
-      15.f, 15.f, 15.f); // Intensidad alta para compensar atenuación 1/d²
-  lights.push_back(light1);
+    phong_shader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
+    if (!phong_shader) {
+        exit(1);
+    }
 
-  // Create animated entities
-  entities.clear();
-  // for (int i = 0; i < 3; ++i) {
-  //   Entity *e = new Entity();
-  //   e->SetMesh(shared_mesh);
-  //   e->material = material;
+    // Textures
+    Texture* lee_color   = Texture::Get("textures/lee_color_specular.tga");
+    Texture* lee_normal  = Texture::Get("textures/lee_normal.tga");
 
-  //   e->base_position = Vector3(-0.6f + i * 0.6f, 0.f, 0.f);
-  //   e->rot_axis = Vector3::UP;
-  //   e->rotation_speed = 0.8f + 0.4f * i;
-  //   e->scale = 0.6f + 0.2f * i;
-  //   e->phase = i * 1.0f;
+    Texture* anna_color  = Texture::Get("textures/anna_color_specular.tga");
+    Texture* anna_normal = Texture::Get("textures/anna_normal.tga");
 
-  //   e->Update(0.0f);
-  //   entities.push_back(e);
-  // }
+    Texture* cleo_color  = Texture::Get("textures/cleo_color_specular.tga");
+    Texture* cleo_normal = Texture::Get("textures/cleo_normal.tga");
 
-  // Single static entity
-  entity = new Entity();
-  entity->SetMesh(shared_mesh);
-  entity->material = material;
-  Matrix44 model;
-  model.SetIdentity();
-  entity->SetModelMatrix(model);
-  entities.push_back(entity);
+    //  Materials 
+
+    Material* anna_material = new Material();
+    anna_material->shader = phong_shader;
+    anna_material->color_texture = anna_color;
+    anna_material->specular_texture = anna_color;
+    anna_material->normal_texture = anna_normal;
+    anna_material->use_color_texture = true;
+    anna_material->use_normal_texture = true;
+    anna_material->use_specular_texture = true;
+    anna_material->Ka = Vector3(0.24725f, 0.1995f, 0.0745f);
+    anna_material->Kd = Vector3(0.75164f, 0.60648f, 0.22648f);
+    anna_material->Ks = Vector3(0.628281f, 0.555802f, 0.366065f);
+    anna_material->shininess = 15.0f;
+
+    Material* lee_material = new Material();
+    lee_material->shader = phong_shader;
+    lee_material->color_texture = lee_color;
+    lee_material->specular_texture = lee_color;
+    lee_material->normal_texture = lee_normal;
+    lee_material->use_color_texture = true;
+    lee_material->use_normal_texture = true;
+    lee_material->use_specular_texture = true;
+    lee_material->Ka = Vector3(0.24725f, 0.1995f, 0.0745f);
+    lee_material->Kd = Vector3(0.75164f, 0.60648f, 0.22648f);
+    lee_material->Ks = Vector3(0.628281f, 0.555802f, 0.366065f);
+    lee_material->shininess = 32.0f;
+
+    Material* cleo_material = new Material();
+    cleo_material->shader = phong_shader;
+    cleo_material->color_texture = cleo_color;
+    cleo_material->specular_texture = cleo_color;
+    cleo_material->normal_texture = cleo_normal;
+    cleo_material->use_color_texture = true;
+    cleo_material->use_normal_texture = true;
+    cleo_material->use_specular_texture = true;
+    cleo_material->Ka = Vector3(0.24725f, 0.1995f, 0.0745f);
+    cleo_material->Kd = Vector3(0.75164f, 0.60648f, 0.22648f);
+    cleo_material->Ks = Vector3(0.628281f, 0.555802f, 0.366065f);
+    cleo_material->shininess = 32.0f;
+    //  Lights 
+    lights.clear();
+
+    sLight light1;
+    light1.position = Vector3(1.f, 1.5f, 1.5f);
+    light1.color = Vector3(3.f, 3.f, 3.f);
+    lights.push_back(light1);
+
+    sLight light2;
+    light2.position = Vector3(-1.f, 1.0f, 1.0f);
+    light2.color = Vector3(0.f, 2.f, 0.f);
+    lights.push_back(light2);
+
+    sLight light3;
+    light3.position = Vector3(0.f, -1.0f, 1.0f);
+    light3.color = Vector3(2.f, 0.f, 0.f);
+    lights.push_back(light3);
+
+    sLight light4;
+    light4.position = Vector3(0.f, 1.0f, -1.0f);
+    light4.color = Vector3(0.f, 0.f, 2.f);
+    lights.push_back(light4);
+
+    //  Entities 
+    entities.clear();
+
+  Entity* e1 = new Entity();
+  e1->SetMesh(anna_mesh);
+  e1->material = anna_material;
+  Matrix44 m1;
+  m1.MakeTranslationMatrix(-0.8f, 0.0f, 0.0f);
+  e1->SetModelMatrix(m1);
+  entities.push_back(e1);
+
+  Entity* e2 = new Entity();
+  e2->SetMesh(lee_mesh);
+  e2->material = lee_material;
+  Matrix44 m2;
+  m2.MakeTranslationMatrix(0.0f, 0.0f, 0.0f);
+  e2->SetModelMatrix(m2);
+  entities.push_back(e2);
+
+  Entity* e3 = new Entity();
+  e3->SetMesh(cleo_mesh);
+  e3->material = cleo_material;
+  Matrix44 m3;
+  m3.MakeTranslationMatrix(0.8f, 0.0f, 0.0f);
+  e3->SetModelMatrix(m3);
+  entities.push_back(e3);
+
+    lab_mode = 5;
 }
 
-// Init UI
-void Application::InitUI(void) {
-  // No UI required for Lab 3
-}
+void Application::Render(void)
+{
+  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-void Application::Render(void) {
+  //  LAB 5
+  if (lab_mode == 5)
+  {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
-  glClearColor(0.f, 0.f, 0.f, 1.f);                   // clear color buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear depth buffer
+    if (!camera || entities.empty() || lights.empty()) {
+      glDisable(GL_DEPTH_TEST);
+      return;
+    }
 
-  // Lab 5: GPU 3D mesh rendering
-  if (lab_mode == 5) {
-    glEnable(GL_DEPTH_TEST); // Enable occlusions
-
-    // Ejercicio 1.2 - Llenar uniform_data con valores de la cámara y luz
-    // ambiente
+    // Common scene uniforms
     uniform_data.viewprojection_matrix = camera->GetViewProjectionMatrix();
     uniform_data.camera_position = camera->eye;
+
+    int lights_to_render = num_active_lights;
+    if (lights_to_render > (int)lights.size())
+      lights_to_render = (int)lights.size();
+
+    if (lights_to_render <= 0) {
+      glDisable(GL_DEPTH_TEST);
+      return;
+    }
+
+    // ambient + first light
     uniform_data.ambient_light = Vector3(0.1f, 0.1f, 0.1f);
+    uniform_data.current_light = lights[0];
 
-    // Configurar la primera luz
-    if (!lights.empty()) {
-      uniform_data.current_light = lights[0];
-    }
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 
-    // TODO: Ejercicio 1.6 - Implementar MultiPass (loop por cada luz)
-
-    // Render all entities
-    for (Entity *e : entities) {
+    for (Entity* e : entities)
       e->Render(uniform_data);
+
+    // add remaining lights
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glDepthMask(GL_FALSE);
+
+    for (int i = 1; i < lights_to_render; ++i) {
+      uniform_data.current_light = lights[i];
+      uniform_data.ambient_light = Vector3(0.f, 0.f, 0.f); // ambient only once
+
+      for (Entity* e : entities)
+        e->Render(uniform_data);
     }
 
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     return;
   }
 
-  // Lab 4: Quad Shader (Tasks 2, 3, 4)
+  // LAB 4
   glDisable(GL_DEPTH_TEST);
+
+  if (!quad_shader || !quad_mesh)
+    return;
+
   quad_shader->Enable();
 
-  // Task 3 starts at mode 6 in the shader
   int u_mode_to_send = subtask_mode;
-  if (formula_mode == 3) {
-    u_mode_to_send = 6 + (subtask_mode % 2); // 6 and 7 are the transforms
-  }
+  if (formula_mode == 3)
+    u_mode_to_send = 6 + (subtask_mode % 2);
 
   quad_shader->SetUniform1("u_mode", u_mode_to_send);
   quad_shader->SetUniform1("u_show_texture", show_image_filters ? 1 : 0);
@@ -179,11 +268,6 @@ void Application::Render(void) {
 
 void Application::Update(float seconds_elapsed) {
   this->time += seconds_elapsed;
-  if (lab_mode == 2) {
-    for (Entity *e : entities) {
-      e->Update(seconds_elapsed);
-    }
-  }
 
   // Camera orbit logic
   if ((mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT)) && lab_mode != 0 &&
@@ -240,53 +324,142 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event) {
     exit(0);
     break;
 
-  case '1':
-    formula_mode = 1; // Task 1: Patterns
-    show_image_filters = false;
-    break;
-  case '2':
-    formula_mode = 2; // Task 2: Filters
-    show_image_filters = true;
-    break;
-  case '3':
-    formula_mode = 3; // Task 3: Animations
-    show_image_filters = true;
-    break;
+    // Switch between Lab 4 / 5
+    case 'l':
+    case 'L':
+      if (lab_mode == 4)
+        lab_mode = 5;
+      else
+        lab_mode = 4;
+      break;
 
-  case 'a':
-    subtask_mode = 0;
-    break;
-  case 'b':
-    subtask_mode = 1;
-    break;
+    // LAB 5: shader selection
+    // Gouraud computes illumination per vertex.
+    // Phong computes illumination per fragment.
+    case 'g':
+    case 'G':
+      if (lab_mode == 5 && gouraud_shader) {
+        for (Entity* e : entities)
+          if (e && e->material)
+            e->material->shader = gouraud_shader;
+      }
+      break;
+
+    case 'p':
+    case 'P':
+      if (lab_mode == 5 && phong_shader) {
+        for (Entity* e : entities)
+          if (e && e->material)
+            e->material->shader = phong_shader;
+      }
+      break;
+
+
+    // Keys shared by Lab 4 and Lab 5
+    // -------------------------
+    case '1':
+      if (lab_mode == 4)
+      {
+        formula_mode = 1; // patterns
+        show_image_filters = false;
+      }
+      else
+      {
+        num_active_lights = 1;
+      }
+      break;
+
+    case '2':
+      if (lab_mode == 4)
+      {
+        formula_mode = 2; // filters
+        show_image_filters = true;
+      }
+      else
+      {
+        num_active_lights = 2;
+      }
+      break;
+
+    case '3':
+      if (lab_mode == 4)
+      {
+        formula_mode = 3; // animations
+        show_image_filters = true;
+      }
+      else
+      {
+        num_active_lights = 3;
+      }
+      break;
+
+    case '4':
+      if (lab_mode == 5)
+        num_active_lights = 4;
+      break;
+
+    case 'a':
+    case 'A':
+      if (lab_mode == 4)
+        subtask_mode = 0;
+      break;
+
+    case 'b':
+    case 'B':
+      if (lab_mode == 4)
+        subtask_mode = 1;
+      break;
+
+    case 'd':
+    case 'D':
+      if (lab_mode == 4)
+        subtask_mode = 3;
+      break;
+
+    case 'e':
+    case 'E':
+      if (lab_mode == 4)
+        subtask_mode = 4;
+      break;
+
+    case 'f':
+    case 'F':
+      if (lab_mode == 4)
+        subtask_mode = 5;
+      break;
+
+    // LAB 5: texture toggles
   case 'c':
-    subtask_mode = 2;
-    break;
-  case 'd':
-    subtask_mode = 3;
-    break;
-  case 'e':
-    subtask_mode = 4;
-    break;
-  case 'f':
-    subtask_mode = 5;
-    break;
-
-  case 'l':
-  case 'L':
-    if (lab_mode != 5)
-      lab_mode = 5;
-    else
-      lab_mode = 2;
+  case 'C':
+    if (lab_mode == 4)
+      subtask_mode = 2;
+    else {
+      for (Entity* e : entities) {
+        if (e && e->material)
+          e->material->use_color_texture = !e->material->use_color_texture;
+      }
+    }
     break;
 
-    // TODO: 2 Interactivity - Añadir control de teclas
-    // case 'p': case 'P': // Cambiar a shader de Phong
-    // case 'g': case 'G': // Cambiar a shader de Gouraud
-    // case 'c': case 'C': // Activar/Desactivar texturas de color
-    // (material->use_color_texture) case 's': case 'S': // Activar/Desactivar
-    // texturas especulares case 'n': case 'N': // Activar/Desactivar texturas
-    // de normales case '1': case '2': ... // Cambiar número de luces a pintar
+  case 's':
+  case 'S':
+    if (lab_mode == 5) {
+      for (Entity* e : entities) {
+        if (e && e->material)
+          e->material->use_specular_texture = !e->material->use_specular_texture;
+      }
+    }
+    break;
+
+  case 'n':
+  case 'N':
+    if (lab_mode == 5) {
+      for (Entity* e : entities) {
+        if (e && e->material)
+          e->material->use_normal_texture = !e->material->use_normal_texture;
+      }
+    }
+    break;
   }
 }
 

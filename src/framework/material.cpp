@@ -16,50 +16,50 @@ Material::~Material() {
   // No borramos las texturas ni shaders aquí ya que pueden estar compartidos
 }
 
-void Material::Enable(const sUniformData &uniformData) {
+void Material::Enable(const sUniformData &uniformData)
+{
   if (!shader)
     return;
 
-  // TODO: Ejercicio 1.1 y 1.2 - Habilitar el shader
   shader->Enable();
 
-  // TODO: Subir matrices
+  // Matrices
   shader->SetMatrix44("u_model", uniformData.model_matrix);
   shader->SetMatrix44("u_viewprojection", uniformData.viewprojection_matrix);
 
-  // TODO: Subir posición de cámara
-  shader->SetVector3("u_camera_position", uniformData.camera_position);
+  // Camera and lights
+  shader->SetUniform3("u_camera_position", uniformData.camera_position);
+  shader->SetUniform3("u_ambient_light", uniformData.ambient_light);
+  shader->SetUniform3("u_light_position", uniformData.current_light.position);
+  shader->SetUniform3("u_light_color", uniformData.current_light.color);
 
-  // TODO: Subir luz ambiente
-  shader->SetVector3("u_ambient_light", uniformData.ambient_light);
+  // Material
+  shader->SetUniform3("u_ka", Ka);
+  shader->SetUniform3("u_kd", Kd);
+  shader->SetUniform3("u_ks", Ks);
+  shader->SetUniform1("u_shininess", shininess);
 
-  // TODO: Subir luz actual (posición, color) desde uniformData.current_light
-  shader->SetVector3("u_light_position", uniformData.current_light.position);
-  shader->SetVector3("u_light_color", uniformData.current_light.color);
+  // Texture flags
+  shader->SetUniform1("u_use_color_texture", (color_texture && use_color_texture) ? 1 : 0);
+  shader->SetUniform1("u_use_normal_texture", (normal_texture && use_normal_texture) ? 1 : 0);
+  shader->SetUniform1("u_use_specular_texture", (specular_texture && use_specular_texture) ? 1 : 0);
+  // Textures
+  if (color_texture && use_color_texture)
+    shader->SetTexture("u_color_texture", color_texture);
 
-  // TODO: Subir las propiedades del material (Ka, Kd, Ks, shininess)
-  shader->SetVector3("u_ka", Ka);
-  shader->SetVector3("u_kd", Kd);
-  shader->SetVector3("u_ks", Ks);
-  shader->SetFloat("u_shininess", shininess);
+  if (normal_texture && use_normal_texture)
+    shader->SetTexture("u_normal_texture", normal_texture);
 
-  // TODO: Ejercicio 1.5 - Subir texturas si están disponibles y usarlas según
-  // los flags if (color_texture && use_color_texture)
-  // shader->SetTexture("u_color_texture", color_texture, 0); // Slot 0
-  // shader->SetUniform1("u_use_color_texture", use_color_texture ? 1 : 0);
-  //
-  // if (specular_texture && use_specular_texture)
-  // shader->SetTexture("u_specular_texture", specular_texture, 1); // Slot 1
-  // ...
-  // if (normal_texture && use_normal_texture)
-  // shader->SetTexture("u_normal_texture", normal_texture, 2); // Slot 2
-  // ...
+
+  if (specular_texture && use_specular_texture)
+    shader->SetTexture("u_specular_texture", specular_texture);
+    
 }
 
-void Material::Disable() {
+void Material::Disable(){
+
   if (!shader)
     return;
 
-  // TODO: Deshabilitar shader
   shader->Disable();
 }
